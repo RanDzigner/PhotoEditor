@@ -25,3 +25,12 @@ module.exports = async function handler(req, res) {
         res.status(500).json({ error: error.message || 'Internal Server Error' });
     }
 };
+
+// Konfigurasi ini yang akan mengatasi HTTP Error 413
+module.exports.config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '4mb',
+        },
+    },
+};
