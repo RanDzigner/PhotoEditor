@@ -41,12 +41,30 @@
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 AI Image Generator
             </h1>
-            <p class="text-gray-400 text-sm md:text-base">Buat gambar menakjubkan hanya dengan teks menggunakan kekuatan Google Imagen AI.</p>
+            <p class="text-gray-400 text-sm md:text-base">Buat gambar menakjubkan dengan kecerdasan Gemini 1.5 Flash (100% Gratis Mode).</p>
         </div>
 
         <!-- Panel Utama -->
         <div class="glass-panel w-full rounded-2xl shadow-2xl p-6 md:p-8 space-y-6">
             
+            <!-- Input API Key -->
+            <div>
+                <label for="apiKey" class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fa-solid fa-key mr-2 text-indigo-400"></i>Google AI Studio API Key
+                </label>
+                <div class="flex gap-2">
+                    <input type="password" id="apiKey" 
+                        class="flex-1 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3 text-sm transition-colors" 
+                        placeholder="Masukkan API Key Anda di sini...">
+                    <button id="saveKeyBtn" onclick="saveApiKey()" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors" title="Simpan API Key">
+                        <i class="fa-solid fa-save"></i>
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-green-400">
+                    <i class="fa-solid fa-check-circle mr-1"></i> Menggunakan mode Gemini Text-to-Image (Anti Limit 0)
+                </p>
+            </div>
+
             <!-- Input Prompt -->
             <div>
                 <label for="prompt" class="block text-sm font-medium text-gray-300 mb-2">
@@ -54,10 +72,7 @@
                 </label>
                 <textarea id="prompt" rows="4" 
                     class="bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block w-full p-3 text-sm transition-colors resize-none" 
-                    placeholder="Contoh: Seekor kucing astronot sedang minum kopi di planet Mars, gaya fotorealistik, pencahayaan sinematik..."></textarea>
-                <p class="mt-2 text-xs text-gray-500 text-right">
-                    Diberdayakan oleh <a href="https://pollinations.ai" target="_blank" class="text-indigo-400 hover:underline">Pollinations.ai</a> (Gratis, tanpa API Key)
-                </p>
+                    placeholder="Contoh: Seekor kucing astronot sedang minum kopi di planet Mars, gaya fotorealistik..."></textarea>
             </div>
 
             <!-- Tombol Generate -->
@@ -76,12 +91,17 @@
         <div id="resultArea" class="w-full mt-8 hidden flex-col items-center">
             <h2 class="text-xl font-bold mb-4 text-gray-200 self-start">Hasil Gambar:</h2>
             
+            <!-- Teks Prompt yang disempurnakan Gemini -->
+            <div id="enhancedPromptArea" class="w-full mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700 hidden">
+                <p class="text-xs text-gray-400 mb-1"><i class="fa-solid fa-robot mr-1"></i> Gemini 1.5 Flash menyempurnakan prompt Anda menjadi:</p>
+                <p id="enhancedPromptText" class="text-sm text-gray-200 italic"></p>
+            </div>
+
             <div class="relative w-full rounded-xl overflow-hidden glass-panel border border-gray-700 aspect-square md:aspect-video flex items-center justify-center bg-gray-900">
                 <!-- Status Loading -->
                 <div id="loadingState" class="hidden flex-col items-center justify-center absolute inset-0 bg-gray-900/80 z-10">
                     <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p class="text-indigo-300 font-medium animate-pulse">Sedang melukis gambar Anda...</p>
-                    <p class="text-gray-500 text-xs mt-2">Ini mungkin memakan waktu beberapa detik.</p>
+                    <p id="loadingText" class="text-indigo-300 font-medium animate-pulse">Menghubungkan ke Gemini...</p>
                 </div>
 
                 <!-- Gambar yang dihasilkan -->
@@ -96,38 +116,66 @@
 
         <!-- Footer -->
         <footer class="mt-12 text-center text-gray-600 text-sm">
-            <p>Dibuat untuk Vercel • Gratis tanpa batas</p>
+            <p>Dibuat untuk Vercel • Diberdayakan oleh Gemini 1.5 Flash</p>
         </footer>
 
     </main>
 
     <!-- Script Logika Aplikasi -->
     <script>
-        // Menyembunyikan pesan error
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('googleAiApiKey');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
+            }
+        });
+
+        // Fungsi menyimpan API Key ke Local Storage
+        function saveApiKey() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (key) {
+                localStorage.setItem('googleAiApiKey', key);
+                
+                // Animasi sukses pada tombol simpan
+                const btn = document.getElementById('saveKeyBtn');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
+                setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+            }
+        }
+
         function hideError() {
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.classList.add('hidden');
             errorDiv.innerText = '';
         }
 
-        // Menampilkan pesan error
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.innerText = message;
             errorDiv.classList.remove('hidden');
         }
 
-        // Fungsi utama membuat gambar
         async function generateImage() {
+            const apiKey = document.getElementById('apiKey').value.trim();
             const prompt = document.getElementById('prompt').value.trim();
             const generateBtn = document.getElementById('generateBtn');
             const resultArea = document.getElementById('resultArea');
             const loadingState = document.getElementById('loadingState');
+            const loadingText = document.getElementById('loadingText');
             const generatedImage = document.getElementById('generatedImage');
             const downloadBtn = document.getElementById('downloadBtn');
+            const enhancedPromptArea = document.getElementById('enhancedPromptArea');
+            const enhancedPromptText = document.getElementById('enhancedPromptText');
 
             // Validasi Input
             hideError();
+            if (!apiKey) {
+                showError("Mohon masukkan Google AI Studio API Key terlebih dahulu.");
+                document.getElementById('apiKey').focus();
+                return;
+            }
             if (!prompt) {
                 showError("Mohon masukkan deskripsi gambar (prompt).");
                 document.getElementById('prompt').focus();
@@ -145,46 +193,60 @@
             loadingState.classList.add('flex');
             generatedImage.classList.add('hidden', 'opacity-0');
             downloadBtn.classList.add('hidden');
+            enhancedPromptArea.classList.add('hidden');
+            loadingText.innerText = "Gemini sedang menyempurnakan prompt Anda...";
 
             try {
-                // Pollinations API mengembalikan gambar secara langsung (bukan JSON)
-                // Kita gunakan URL dengan prompt yang di-encode
-                // Tambahkan random seed agar tidak memunculkan gambar yang sama dari cache jika promptnya persis sama
-                const seed = Math.floor(Math.random() * 1000000);
-                const encodedPrompt = encodeURIComponent(prompt);
+                // TAHAP 1: Menggunakan Google Gemini 1.5 Flash (100% Gratis) untuk menyempurnakan prompt
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                const systemInstruction = "You are a professional AI image prompt engineer. Translate the user's input into English and enhance it to be a highly detailed, descriptive image generation prompt. Add relevant keywords for lighting, style, and atmosphere. ONLY output the final prompt text, do not add any conversational filler, intro, or quotes.";
                 
-                // Dimensi gambar (bisa disesuaikan, misal 1024x1024)
-                const width = 1024;
-                const height = 1024;
-                const model = 'flux'; // Menggunakan model terbaru Flux yang sangat bagus
+                const geminiResponse = await fetch(geminiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: systemInstruction }] }
+                    })
+                });
 
-                const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=${model}&nologo=true`;
+                const geminiData = await geminiResponse.json();
 
-                // Untuk mengecek apakah request berhasil, kita gunakan fetch
-                const response = await fetch(imageUrl);
-
-                if (!response.ok) {
-                    throw new Error("Terjadi kesalahan pada server saat membuat gambar. Coba lagi nanti.");
+                if (!geminiResponse.ok) {
+                    throw new Error(geminiData.error?.message || "Gagal menghubungi Gemini API.");
                 }
 
-                // Karena response-nya adalah file gambar utuh, kita ubah menjadi Blob
-                const imageBlob = await response.blob();
+                // Ambil hasil prompt yang sudah disempurnakan oleh Gemini
+                const perfectPrompt = geminiData.candidates[0].content.parts[0].text.trim();
+                
+                // Tampilkan prompt hasil karya Gemini di UI
+                enhancedPromptText.innerText = perfectPrompt;
+                enhancedPromptArea.classList.remove('hidden');
+
+                // TAHAP 2: Generate gambar berdasarkan prompt dari Gemini
+                loadingText.innerText = "Melukis gambar Anda...";
+                
+                const seed = Math.floor(Math.random() * 1000000);
+                const encodedPrompt = encodeURIComponent(perfectPrompt);
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${seed}&nologo=true`;
+
+                const imageResponse = await fetch(imageUrl);
+
+                if (!imageResponse.ok) {
+                    throw new Error("Gagal mengambil gambar. Coba lagi nanti.");
+                }
+
+                const imageBlob = await imageResponse.blob();
                 const objectURL = URL.createObjectURL(imageBlob);
 
                 // Tampilkan gambar
                 generatedImage.src = objectURL;
                 
-                // Tunggu gambar terload sebelum menampilkan
                 generatedImage.onload = () => {
                     loadingState.classList.add('hidden');
                     loadingState.classList.remove('flex');
                     generatedImage.classList.remove('hidden');
-                    
-                    // Efek transisi halus
-                    setTimeout(() => {
-                        generatedImage.classList.remove('opacity-0');
-                    }, 50);
-
+                    setTimeout(() => { generatedImage.classList.remove('opacity-0'); }, 50);
                     downloadBtn.classList.remove('hidden');
                 };
 
@@ -194,7 +256,6 @@
                 loadingState.classList.add('hidden');
                 loadingState.classList.remove('flex');
             } finally {
-                // Kembalikan status tombol
                 generateBtn.disabled = false;
                 generateBtn.innerHTML = '<i class="fa-solid fa-image"></i><span>Buat Gambar</span>';
                 generateBtn.classList.remove('opacity-75', 'cursor-not-allowed');
@@ -208,11 +269,8 @@
 
             const link = document.createElement('a');
             link.href = imageSrc;
-            
-            // Buat nama file unik berdasarkan waktu
             const timestamp = new Date().getTime();
-            link.download = `AI_Image_${timestamp}.png`;
-            
+            link.download = `Gemini_Image_${timestamp}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
