@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator - Modern</title>
+    <!-- Menggunakan Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Menggunakan Font Awesome untuk ikon -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Animasi kustom untuk loading */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+        .loading-pulse {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        /* Desain Glassmorphism ringan */
+        .glass-panel {
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Latar Belakang Dekoratif -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-900/20 blur-[120px]"></div>
+        <div class="absolute top-[60%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-900/20 blur-[100px]"></div>
+    </div>
+
+    <main class="container mx-auto px-4 py-8 md:py-12 max-w-3xl flex flex-col items-center">
+        
+        <!-- Header -->
+        <div class="text-center mb-10 w-full">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                AI Image Generator
+            </h1>
+            <p class="text-gray-400 text-sm md:text-base">Buat gambar menakjubkan hanya dengan teks menggunakan kekuatan Google Imagen AI.</p>
+        </div>
+
+        <!-- Panel Utama -->
+        <div class="glass-panel w-full rounded-2xl shadow-2xl p-6 md:p-8 space-y-6">
+            
+            <!-- Input API Key -->
+            <div>
+                <label for="apiKey" class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fa-solid fa-key mr-2 text-indigo-400"></i>Google AI Studio API Key
+                </label>
+                <div class="flex gap-2">
+                    <input type="password" id="apiKey" 
+                        class="flex-1 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3 text-sm transition-colors" 
+                        placeholder="Masukkan API Key Anda di sini...">
+                    <button id="saveKeyBtn" onclick="saveApiKey()" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors" title="Simpan API Key">
+                        <i class="fa-solid fa-save"></i>
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-gray-500">
+                    Dapatkan API key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 hover:underline">Google AI Studio</a>. Key disimpan aman di browser Anda.
+                </p>
+            </div>
+
+            <!-- Input Prompt -->
+            <div>
+                <label for="prompt" class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2 text-purple-400"></i>Deskripsi Gambar (Prompt)
+                </label>
+                <textarea id="prompt" rows="4" 
+                    class="bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block w-full p-3 text-sm transition-colors resize-none" 
+                    placeholder="Contoh: Seekor kucing astronot sedang minum kopi di planet Mars, gaya fotorealistik, pencahayaan sinematik..."></textarea>
+            </div>
+
+            <!-- Tombol Generate -->
+            <button id="generateBtn" onclick="generateImage()" 
+                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg py-3 px-5 shadow-lg transform transition-all active:scale-95 flex justify-center items-center gap-2">
+                <i class="fa-solid fa-image"></i>
+                <span>Buat Gambar</span>
+            </button>
+            
+            <!-- Pesan Error -->
+            <div id="errorMessage" class="hidden bg-red-900/50 border border-red-500/50 text-red-200 p-3 rounded-lg text-sm"></div>
+
+        </div>
+
+        <!-- Area Hasil Gambar -->
+        <div id="resultArea" class="w-full mt-8 hidden flex-col items-center">
+            <h2 class="text-xl font-bold mb-4 text-gray-200 self-start">Hasil Gambar:</h2>
+            
+            <div class="relative w-full rounded-xl overflow-hidden glass-panel border border-gray-700 aspect-square md:aspect-video flex items-center justify-center bg-gray-900">
+                <!-- Status Loading -->
+                <div id="loadingState" class="hidden flex-col items-center justify-center absolute inset-0 bg-gray-900/80 z-10">
+                    <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p class="text-indigo-300 font-medium animate-pulse">Sedang melukis gambar Anda...</p>
+                    <p class="text-gray-500 text-xs mt-2">Ini mungkin memakan waktu beberapa detik.</p>
+                </div>
+
+                <!-- Gambar yang dihasilkan -->
+                <img id="generatedImage" src="" alt="Hasil Gambar AI" class="w-full h-full object-contain hidden transition-opacity duration-500 opacity-0">
+            </div>
+
+            <!-- Tombol Download -->
+            <button id="downloadBtn" onclick="downloadImage()" class="hidden mt-6 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white font-medium rounded-lg py-2 px-6 transition-colors flex items-center gap-2 shadow-md">
+                <i class="fa-solid fa-download"></i> Unduh Gambar
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-gray-600 text-sm">
+            <p>Dibuat untuk Vercel • Diberdayakan oleh Google Imagen</p>
+        </footer>
+
+    </main>
+
+    <!-- Script Logika Aplikasi -->
+    <script>
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('googleAiApiKey');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
+            }
+        });
+
+        // Fungsi menyimpan API Key ke Local Storage
+        function saveApiKey() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (key) {
+                localStorage.setItem('googleAiApiKey', key);
+                
+                // Animasi sukses pada tombol simpan
+                const btn = document.getElementById('saveKeyBtn');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
+                setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+            }
+        }
+
+        // Menyembunyikan pesan error
+        function hideError() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.add('hidden');
+            errorDiv.innerText = '';
+        }
+
+        // Menampilkan pesan error
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerText = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        // Fungsi utama membuat gambar
+        async function generateImage() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const prompt = document.getElementById('prompt').value.trim();
+            const generateBtn = document.getElementById('generateBtn');
+            const resultArea = document.getElementById('resultArea');
+            const loadingState = document.getElementById('loadingState');
+            const generatedImage = document.getElementById('generatedImage');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            // Validasi Input
+            hideError();
+            if (!apiKey) {
+                showError("Mohon masukkan Google AI Studio API Key terlebih dahulu.");
+                document.getElementById('apiKey').focus();
+                return;
+            }
+            if (!prompt) {
+                showError("Mohon masukkan deskripsi gambar (prompt).");
+                document.getElementById('prompt').focus();
+                return;
+            }
+
+            // Siapkan UI untuk loading
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span>Memproses...</span>';
+            generateBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            resultArea.classList.remove('hidden');
+            resultArea.classList.add('flex');
+            loadingState.classList.remove('hidden');
+            loadingState.classList.add('flex');
+            generatedImage.classList.add('hidden', 'opacity-0');
+            downloadBtn.classList.add('hidden');
+
+            try {
+                // Endpoint untuk model Imagen 3 (Berdasarkan dokumentasi Google AI Studio)
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`;
+
+                const requestBody = {
+                    instances: [
+                        { prompt: prompt }
+                    ],
+                    parameters: {
+                        sampleCount: 1
+                    }
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || "Terjadi kesalahan pada server saat membuat gambar.");
+                }
+
+                if (data.predictions && data.predictions.length > 0) {
+                    // Mendapatkan base64 string
+                    const base64Image = data.predictions[0].bytesBase64Encoded;
+                    const imageUrl = `data:image/png;base64,${base64Image}`;
+
+                    // Tampilkan gambar
+                    generatedImage.src = imageUrl;
+                    
+                    // Tunggu gambar terload sebelum menampilkan
+                    generatedImage.onload = () => {
+                        loadingState.classList.add('hidden');
+                        loadingState.classList.remove('flex');
+                        generatedImage.classList.remove('hidden');
+                        
+                        // Efek transisi halus
+                        setTimeout(() => {
+                            generatedImage.classList.remove('opacity-0');
+                        }, 50);
+
+                        downloadBtn.classList.remove('hidden');
+                    };
+                } else {
+                    throw new Error("API tidak mengembalikan data gambar.");
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+                showError(error.message);
+                loadingState.classList.add('hidden');
+                loadingState.classList.remove('flex');
+            } finally {
+                // Kembalikan status tombol
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fa-solid fa-image"></i><span>Buat Gambar</span>';
+                generateBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        // Fungsi untuk mengunduh gambar
+        function downloadImage() {
+            const imageSrc = document.getElementById('generatedImage').src;
+            if (!imageSrc) return;
+
+            const link = document.createElement('a');
+            link.href = imageSrc;
+            
+            // Buat nama file unik berdasarkan waktu
+            const timestamp = new Date().getTime();
+            link.download = `AI_Image_${timestamp}.png`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
