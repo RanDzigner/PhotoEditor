@@ -191,7 +191,8 @@
 
             try {
                 // Endpoint untuk model Imagen 3 (Berdasarkan dokumentasi Google AI Studio)
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`;
+                // Diperbarui dari -001 ke -002 untuk mengatasi error "not found/not supported"
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
 
                 const requestBody = {
                     instances: [
