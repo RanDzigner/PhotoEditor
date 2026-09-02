@@ -197,37 +197,11 @@
             enhancedPromptArea.classList.add('hidden');
             
             try {
-                // TAHAP 1: Mencari model teks yang tersedia
-                loadingText.innerText = "Mencari model AI yang tersedia...";
-                const listModelsUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-                const modelsResponse = await fetch(listModelsUrl);
-                const modelsData = await modelsResponse.json();
-
-                if (!modelsResponse.ok) {
-                    throw new Error(modelsData.error?.message || "Gagal mengambil daftar model.");
-                }
-
-                // Cari model teks yang mendukung generateContent (utamakan keluarga gemini flash)
-                let activeTextModel = "";
-                if (modelsData.models) {
-                     const validModels = modelsData.models.filter(m => 
-                        m.supportedGenerationMethods.includes("generateContent") &&
-                        m.name.includes("gemini") &&
-                        m.name.includes("flash")
-                    );
-                    if (validModels.length > 0) {
-                        // Ambil yang pertama (biasanya yang terbaru/default)
-                        activeTextModel = validModels[0].name;
-                    }
-                }
-
-                if (!activeTextModel) {
-                     throw new Error("Tidak menemukan model teks Gemini yang aktif di akun Anda.");
-                }
-
-                // TAHAP 2: Menggunakan model teks yang ditemukan untuk menyempurnakan prompt
-                loadingText.innerText = `Menyempurnakan prompt dengan ${activeTextModel.replace('models/', '')}...`;
-                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/${activeTextModel}:generateContent?key=${apiKey}`;
+                const activeTextModel = "gemini-3.6-flash";
+                loadingText.innerText = `Menyempurnakan prompt dengan ${activeTextModel}...`;
+                
+                // Langsung gunakan endpoint model terbaru sesuai arahan Google
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeTextModel}:generateContent?key=${apiKey}`;
                 const systemInstruction = "You are a professional AI image prompt engineer. Translate the user's input into English and enhance it to be a highly detailed, descriptive image generation prompt. Add relevant keywords for lighting, style, and atmosphere. ONLY output the final prompt text, do not add any conversational filler, intro, or quotes.";
                 
                 const geminiResponse = await fetch(geminiUrl, {
