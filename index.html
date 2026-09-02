@@ -165,47 +165,40 @@
 </head>
 <body class="bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 overflow-y-auto md:overflow-hidden">
     
-    <!-- App Container (Mobile: Scrollable Full Page, Desktop: Fixed Height 3 Cols) -->
+    <!-- App Container -->
     <div class="flex flex-col md:flex-row min-h-screen md:h-screen w-full relative">
         
         <!-- COLUMN 1: Sidebar Navigation -->
         <aside class="w-full md:w-20 lg:w-[100px] flex-shrink-0 bg-white dark:bg-[#0b1120] border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800/80 flex flex-row md:flex-col items-center justify-between md:justify-start px-4 md:px-2 py-3 md:py-6 z-50 sticky top-0 md:relative overflow-x-auto md:overflow-y-auto scrollbar-hide shadow-sm md:shadow-none">
             
-            <!-- Logo -->
             <div class="flex-shrink-0 md:mb-8 text-center flex items-center justify-center mr-6 md:mr-0">
                 <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30">
                     <i class="fa-solid fa-camera-retro text-white text-xl md:text-2xl"></i>
                 </div>
             </div>
 
-            <!-- Tab Buttons -->
             <div class="flex flex-row md:flex-col gap-2 md:gap-4 w-max md:w-full items-center">
-                <!-- Tab: Umum -->
                 <button id="tab-btn-umum" class="flex flex-col items-center justify-center gap-1 p-2 w-[70px] md:w-full md:aspect-square rounded-2xl text-[10px] md:text-xs font-bold text-brand-600 dark:text-brand-400 bg-white dark:bg-slate-800 border-2 border-brand-500 transition-all shadow-sm flex-shrink-0 group">
                     <i class="fa-solid fa-wand-magic-sparkles text-xl md:text-2xl mb-0.5 group-hover:scale-110 transition-transform"></i>
                     <span>Umum</span>
                 </button>
 
-                <!-- Tab: Wajah -->
                 <button id="tab-btn-wajah" class="flex flex-col items-center justify-center gap-1 p-2 w-[70px] md:w-full md:aspect-square rounded-2xl text-[10px] md:text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-2 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all flex-shrink-0 group">
                     <i class="fa-solid fa-face-smile text-xl md:text-2xl mb-0.5 group-hover:scale-110 transition-transform"></i>
                     <span>Wajah</span>
                 </button>
 
-                <!-- Tab: Tiru -->
                 <button id="tab-btn-tiru" class="flex flex-col items-center justify-center gap-1 p-2 w-[70px] md:w-full md:aspect-square rounded-2xl text-[10px] md:text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-2 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all flex-shrink-0 group">
                     <i class="fa-solid fa-clone text-xl md:text-2xl mb-0.5 group-hover:scale-110 transition-transform"></i>
                     <span>Tiru</span>
                 </button>
 
-                <!-- Tab: IG Layout -->
                 <button id="tab-btn-ig" class="flex flex-col items-center justify-center gap-1 p-2 w-[70px] md:w-full md:aspect-square rounded-2xl text-[10px] md:text-xs font-medium text-pink-500 hover:text-pink-600 dark:text-pink-400 border-2 border-transparent hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all flex-shrink-0 group">
                     <i class="fa-brands fa-instagram text-2xl md:text-3xl mb-0.5 group-hover:scale-110 transition-transform"></i>
                     <span>IG Layout</span>
                 </button>
             </div>
             
-            <!-- Spacer & Mobile specific items -->
             <div class="md:mt-auto hidden md:block">
                 <button class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-brand-500 transition-colors flex items-center justify-center" title="Informasi App">
                     <i class="fa-solid fa-circle-info"></i>
@@ -216,11 +209,10 @@
         <!-- COLUMN 2: Settings Panel -->
         <section class="w-full md:w-[340px] lg:w-[400px] xl:w-[440px] flex-shrink-0 bg-white dark:bg-[#0f172a] border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800/80 flex flex-col h-auto md:h-full z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
             
-            <!-- Header: Title & Theme Toggle -->
             <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md z-20">
                 <div>
                     <h2 class="font-bold text-lg text-slate-800 dark:text-white tracking-tight leading-tight">ROG ProEditor</h2>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center mt-0.5"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> Gemini 3.1 Flash</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center mt-0.5"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> Gemini API</p>
                 </div>
                 <button id="theme-toggle" type="button" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-all">
                     <i id="theme-toggle-dark-icon" class="hidden fa-solid fa-moon text-sm"></i>
@@ -228,10 +220,8 @@
                 </button>
             </div>
 
-            <!-- Scrollable Settings -->
             <div class="flex-1 overflow-visible md:overflow-y-auto p-6 space-y-6 pb-6">
                 
-                <!-- 1. Upload Zone (Always Visible) -->
                 <div>
                     <div class="flex justify-between items-center mb-3">
                         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center">
@@ -261,7 +251,6 @@
                                     </div>
                                 </div>
                                 <div id="thumbnail-gallery" class="flex flex-wrap gap-2 w-full max-h-[140px] overflow-y-auto pr-1" onclick="event.stopPropagation()">
-                                    <!-- Thumbnails -->
                                 </div>
                             </div>
                         </div>
@@ -270,7 +259,6 @@
 
                 <div class="border-t border-slate-100 dark:border-slate-800"></div>
 
-                <!-- 2. Dynamic Tools Area -->
                 <div class="relative">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center mb-4">
                         <span class="w-6 h-6 rounded-md bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-2 text-xs">2</span> 
@@ -279,8 +267,9 @@
 
                     <!-- TAB: UMUM -->
                     <div id="tab-content-umum" class="space-y-5 block animate-fade-in-up">
-                        <!-- Referensi Gaya -->
-                        <div class="bg-indigo-50/40 dark:bg-slate-800/40 p-4 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50 relative overflow-hidden">
+                        
+                        <!-- Referensi Gaya (Hidden as requested) -->
+                        <div class="hidden bg-indigo-50/40 dark:bg-slate-800/40 p-4 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50 relative overflow-hidden">
                             <div class="absolute top-0 right-0 p-2"><i class="fa-solid fa-wand-magic-sparkles text-indigo-200 dark:text-slate-700 text-3xl"></i></div>
                             <label class="block text-xs font-bold text-indigo-900 dark:text-indigo-300 mb-2 relative z-10">Ekstrak Gaya (Opsional)</label>
                             
@@ -306,7 +295,6 @@
                             </div>
                         </div>
 
-                        <!-- Prompt Utama -->
                         <div>
                             <div class="flex justify-between items-end mb-2">
                                 <label for="prompt-input" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Instruksi Edit</label>
@@ -324,7 +312,6 @@
                             </div>
                         </div>
 
-                        <!-- Presets -->
                         <div>
                             <div class="flex justify-between items-center mb-3">
                                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Koleksi Preset</label>
@@ -338,10 +325,8 @@
                                 </select>
                             </div>
                             <div class="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto p-1 -mx-1 scrollbar-hide" id="default-preset-container">
-                                <!-- Preset Buttons -->
                             </div>
                             <div class="flex flex-wrap gap-1.5 mt-2" id="custom-preset-container">
-                                <!-- Custom Presets -->
                             </div>
                         </div>
                     </div>
@@ -492,6 +477,25 @@
 
             <!-- Sticky Footer inside Settings Panel -->
             <div class="mt-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 p-5 z-40 sticky bottom-0 md:relative">
+                
+                <!-- DROPDOWN MODEL AI -->
+                <div class="mb-3">
+                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Model AI</label>
+                    <select id="ai-model-select" class="w-full px-3 py-2 text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-all cursor-pointer">
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        <option value="gemini-2.0-pro">Gemini 2.0 Pro</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                        <option value="gemini-2.5-flash-image">Gemini 2.5 Flash Image</option>
+                        <option value="gemini-3-flash">Gemini 3 Flash</option>
+                        <option value="gemini-3.1-flash-image" selected>Gemini 3.1 Flash Image</option>
+                        <option value="gemini-3.1-flash-lite-image">Gemini 3.1 Flash Lite Image</option>
+                        <option value="gemini-3-pro-image">Gemini 3 Pro Image</option>
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3 mb-4">
                      <div>
                          <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Aspek Rasio</label>
@@ -500,6 +504,7 @@
                             <option value="1:1">1:1 (Square)</option>
                             <option value="4:5">4:5 (IG Portrait)</option>
                             <option value="16:9">16:9 (Landscape)</option>
+                            <option value="19:6">19:6 (Wide Banner)</option>
                             <option value="9:16">9:16 (Story)</option>
                             <option value="3:2">3:2 (Standar 35mm)</option>
                             <option value="2:3">2:3 (Potret 35mm)</option>
@@ -521,7 +526,6 @@
         <!-- COLUMN 3: Main Canvas (Results) -->
         <main id="main-workspace-area" class="flex-1 flex flex-col relative h-[80vh] md:h-full canvas-bg z-10 min-h-[600px] md:min-h-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800/80">
             
-            <!-- Floating Toolbar inside Canvas -->
             <div class="absolute top-4 left-4 right-4 z-20 flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/40 dark:border-slate-700/50 shadow-sm transition-all duration-300">
                 <div class="flex items-center gap-3">
                     <h3 class="text-sm md:text-base font-extrabold text-slate-800 dark:text-white tracking-tight flex items-center">
@@ -552,8 +556,8 @@
                 </div>
             </div>
 
-            <!-- Empty State -->
-            <div id="empty-results-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 pointer-events-none pb-20 md:pb-0">
+            <!-- Empty State (Hidden) -->
+            <div id="empty-results-state" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-8 pointer-events-none pb-20 md:pb-0">
                 <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white dark:bg-slate-800/80 flex items-center justify-center mb-5 shadow-sm border border-slate-200 dark:border-slate-700/50">
                     <i class="fa-solid fa-layer-group text-3xl md:text-4xl text-slate-300 dark:text-slate-600"></i>
                 </div>
@@ -561,17 +565,15 @@
                 <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 max-w-[250px] mt-2 leading-relaxed">Unggah foto, pilih alat di sebelah kiri, dan hasil resolusi tinggi akan muncul di sini.</p>
             </div>
 
-            <!-- Scrollable Results Area -->
             <div class="w-full h-full overflow-y-auto pt-20 px-4 md:px-8 pb-10">
                 <div id="results-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6 auto-rows-max">
-                    <!-- Generated Images will be placed here -->
                 </div>
             </div>
         </main>
     </div>
 
     <!-- Custom Confirm Modal -->
-    <div id="custom-confirm-modal" class="modal flex items-center justify-center hidden">
+    <div id="custom-confirm-modal" class="modal hidden flex items-center justify-center">
         <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-xs mx-4 overflow-hidden border border-slate-100 dark:border-slate-800 p-6 text-center transform transition-all">
             <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-50 dark:bg-red-500/10 mb-5">
                 <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500"></i>
@@ -700,7 +702,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Theme toggle initialization
             const themeToggleBtn = document.getElementById('theme-toggle');
             const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
             const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
@@ -724,19 +725,15 @@
                 }
             });
 
-            // State variables
             let uploadedImages = []; 
             let generatedImages = []; 
             let activeTasksCount = 0; 
-            
             let downloadContext = { type: 'single', url: null }; 
             let selectedQuality = '1080p';
-            
             let activeRefImage = null; 
             let activeFaceRefImage = null; 
             let activeTiruRefImage = null; 
 
-            // DOM Elements
             const dropZone = document.getElementById('drop-zone');
             const fileInput = document.getElementById('file-input');
             const uploadPrompt = document.getElementById('upload-prompt');
@@ -750,7 +747,6 @@
             const presetCategoryFilter = document.getElementById('preset-category-filter');
             const defaultPresetContainer = document.getElementById('default-preset-container');
 
-            // --- Database Preset (Updated with Strobist, Panggung, Light Fashion) ---
             const defaultPresetsData = [
                 { category: 'favorit', name: 'Sinar Matahari', image: 'https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?q=80&w=300&auto=format&fit=crop', prompt: 'Fotografi sinematik hiper-realistis, perspektif sudut lebar, fokus latar depan yang tajam dengan bokeh latar belakang yang lembut. Pencahayaan adalah saat golden hour di awal siang hari, menampilkan sinar matahari hangat dan terarah, bayangan yang dalam dan berbintik-bintik, serta suar matahari yang lembut. Palet warnanya cerah dan sangat jenuh, ditandai dengan warna kuning keemasan yang kaya, hijau zamrud yang subur, dan biru langit yang dalam. Suasananya idilis, damai, dan nostalgia' },
                 { category: 'favorit', name: 'Morning Light', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=300&auto=format&fit=crop', prompt: 'Early morning light with yellow tones, soft edge light highlights the hair, clothes and lines of the subject. The soft light from the sun creates a dreamy feel, while the long natural shadows on the ground create depth and realism. Add a dramatic mist effect with a thin layer of mist in the distant background. As the mist approaches the foreground, it becomes thinner and lighter, ensuring the main subject remains sharp and visible. The mist creates depth and atmosphere, with subtle shadows fading into the distance. It is cinematic, atmospheric and has great detail. No editing, no face editing, “Keep the face out of the details”' },
@@ -792,7 +788,6 @@
                 { category: 'favorit', name: 'Light Fashion', image: 'https://images.unsplash.com/photo-1611042553365-9b101441c135?q=80&w=300&auto=format&fit=crop', prompt: 'Tingkatkan resolusi, pertajam detail, buat pencahayaan menjadi studio profesional 8k, tambahkan effect cahaya Ungu , Orange yang mengenai tubuh, dan backlight kuning yang menembus rambut dan tubuh, pencahayaan sinematik, wajah karakter tetap , background tetap' }
             ];
 
-            // Render Presets
             function renderDefaultPresets(filter = 'all') {
                 defaultPresetContainer.innerHTML = '';
                 const filtered = filter === 'all' ? defaultPresetsData : defaultPresetsData.filter(p => p.category === filter);
@@ -813,7 +808,6 @@
                 renderDefaultPresets(e.target.value);
             });
 
-            // Preset Button Click
             defaultPresetContainer.addEventListener('click', (e) => {
                 const btn = e.target.closest('.preset-btn');
                 if (!btn) return;
@@ -843,7 +837,7 @@
             const wajahUploadPrompt = document.getElementById('wajah-upload-prompt');
             const wajahPreviewContainer = document.getElementById('wajah-preview-container');
             const wajahPreview = document.getElementById('wajah-preview');
-            const removeWajahBtn = document.getElementById('removeWajah-btn');
+            const removeWajahBtn = document.getElementById('remove-wajah-btn');
             const wajahPromptInput = document.getElementById('wajah-prompt-input');
             
             const tiruDropZone = document.getElementById('tiru-drop-zone');
@@ -907,7 +901,6 @@
             let currentModalImageUrl = '';
             let activeTab = 'umum'; 
 
-            // --- Custom Confirm Modal Logic ---
             const customConfirmModal = document.getElementById('custom-confirm-modal');
             const confirmMessage = document.getElementById('confirm-message');
             const confirmOkBtn = document.getElementById('confirm-ok-btn');
@@ -917,12 +910,12 @@
             function showConfirmDialog(message, onConfirm) {
                 confirmMessage.textContent = message;
                 pendingConfirmCallback = onConfirm;
-                customConfirmModal.style.display = "flex";
+                customConfirmModal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             }
 
             function hideConfirmDialog() {
-                customConfirmModal.style.display = "none";
+                customConfirmModal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
                 pendingConfirmCallback = null;
             }
@@ -933,7 +926,6 @@
                 hideConfirmDialog();
             });
 
-            // --- Hover Preset Image Logic ---
             document.addEventListener('mouseover', (e) => {
                 const btn = e.target.closest('.preset-btn');
                 if (btn && btn.dataset.image) {
@@ -983,6 +975,37 @@
                 });
             }
 
+            function compressImageClient(base64Data) {
+                return new Promise((resolve) => {
+                    const sizeMB = (base64Data.length * (3/4)) / (1024 * 1024);
+                    if (sizeMB < 2.5) return resolve(base64Data); 
+
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDim = 1920; 
+                        
+                        if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
+                            } else {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.85)); 
+                    };
+                    img.src = base64Data;
+                });
+            }
+
             dropZone.addEventListener('click', (e) => {
                 if(!imagePreviewContainer.contains(e.target)) fileInput.click();
             });
@@ -1021,13 +1044,14 @@
 
                     try {
                         const { result, file: processedFile } = await readImageFile(file);
-                        const base64Data = result.split(',')[1];
-                        const mimeType = result.match(/[^:]\w+\/[\w-+\d.]+(?=;|,)/)[0];
+                        const compressedResult = await compressImageClient(result);
+                        const base64Data = compressedResult.split(',')[1];
+                        const mimeType = compressedResult.match(/[^:]\w+\/[\w-+\d.]+(?=;|,)/)[0];
                         
                         let extractedExif = null;
                         if (mimeType === 'image/jpeg' || processedFile.name.toLowerCase().endsWith('.jpg') || processedFile.name.toLowerCase().endsWith('.jpeg')) {
                             try {
-                                extractedExif = piexif.load(result);
+                                extractedExif = piexif.load(compressedResult);
                                 if (extractedExif && extractedExif.thumbnail !== undefined) delete extractedExif.thumbnail;
                                 if (extractedExif) piexif.dump(extractedExif);
                             } catch (err) { extractedExif = null; }
@@ -1046,7 +1070,7 @@
                                 
                                 uploadedImages.push({
                                     id: Date.now() + Math.random(),
-                                    url: result,
+                                    url: compressedResult,
                                     data: base64Data,
                                     mimeType: mimeType,
                                     originalAspectRatio: closestRatioStr,
@@ -1057,7 +1081,7 @@
                                 checkReadiness();
                                 resolveImg();
                             };
-                            img.src = result;
+                            img.src = compressedResult;
                         });
                     } catch (error) { console.error(error); }
                 }
@@ -1114,7 +1138,6 @@
                 });
             }
 
-            // Tab Switching Logic (Updated to exact original classes + layout adjustments)
             const tabs = ['umum', 'wajah', 'tiru', 'ig'];
 
             function switchTab(targetTab) {
@@ -1191,7 +1214,6 @@
                 savePresetDialog.classList.add('hidden');
             });
 
-            // Ref Uploads 
             function setupRefUpload(dropZoneId, inputId, previewId, previewContainerId, promptId, removeBtnId, activeRefVarName, isUmum = false) {
                 const zone = document.getElementById(dropZoneId);
                 const input = document.getElementById(inputId);
@@ -1257,19 +1279,14 @@
             setupRefUpload('tiru-drop-zone', 'tiru-ref-input', 'tiru-preview', 'tiru-preview-container', 'tiru-upload-prompt', 'remove-tiru-btn', 'tiru');
 
             async function extractStyleFromImage(base64Data, mimeType) {
-                // MENGUBAH URL KE ENDPOINT VERCEL
+                const selectedModel = document.getElementById('ai-model-select').value; 
                 const apiUrl = `/api/extract`; 
-                const payload = { contents: [{ role: "user", parts: [ { text: "Analyze style, lighting, color grading. Write detailed concise image generation prompt focusing ONLY on these. No subjects. English." }, { inlineData: { mimeType, data: base64Data } } ] }] };
-                
-                const res = await fetch(apiUrl, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(payload) 
-                });
-                
-                if (!res.ok) {
-                    throw new Error(`HTTP Error ${res.status}`);
-                }
+                const payload = { 
+                    model: selectedModel, 
+                    contents: [{ role: "user", parts: [ { text: "Analyze style, lighting, color grading. Write detailed concise image generation prompt focusing ONLY on these. No subjects. English." }, { inlineData: { mimeType, data: base64Data } } ] }] 
+                };
+                const res = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
                 const json = await res.json();
                 return json.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
             }
@@ -1334,7 +1351,6 @@
                 return activeTab === 'wajah' ? "Face Swap" : "Custom AI Edit"; 
             }
 
-            // CORE AI GENERATION LOGIC
             generateBtn.addEventListener('click', () => {
                 if (uploadedImages.length === 0) return;
                 
@@ -1378,7 +1394,7 @@
 
                 const promptText = promptToUse;
                 let aspectRatio = aspectRatioSelect.value;
-                if (activeTab === 'ig' && aspectRatio === 'original') { aspectRatio = '4:5'; aspectRatioSelect.value = '4:5'; } // Default IG
+                if (activeTab === 'ig' && aspectRatio === 'original') { aspectRatio = '4:5'; aspectRatioSelect.value = '4:5'; } 
                 
                 let variationsPerImage = parseInt(variationsCountSelect.value) || 1;
                 if (variationsPerImage > 20) { variationsPerImage = 20; variationsCountSelect.value = 20; }
@@ -1394,7 +1410,6 @@
                 emptyResultsState.classList.add('hidden');
                 resultsGrid.classList.remove('hidden');
 
-                // Auto scroll to Workspace on Mobile
                 setTimeout(() => {
                     const workspaceArea = document.getElementById('main-workspace-area');
                     if (workspaceArea && window.innerWidth < 768) {
@@ -1482,8 +1497,12 @@
                     parts.push({ text: instruction }, { inlineData: { mimeType: refImageData.mimeType, data: refImageData.data } });
                 }
 
-                const payload = { contents: [{ role: "user", parts: parts }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } };
-                // MENGUBAH URL KE ENDPOINT VERCEL
+                const selectedModel = document.getElementById('ai-model-select').value; 
+                const payload = { 
+                    model: selectedModel, 
+                    contents: [{ role: "user", parts: parts }], 
+                    generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } 
+                };
                 const apiUrl = `/api/generate`;
 
                 let retryCount = 0;
@@ -1560,7 +1579,6 @@
                 `;
             }
 
-            // Global Functions for inline HTML onclicks
             window.openModalByIndex = function(index) {
                 const obj = generatedImages[index];
                 if (!obj) return;
@@ -1614,7 +1632,6 @@
                 if (currentModalImageUrl) { modal.style.display = "none"; openQualityModal('single', currentModalImageUrl); }
             }
             
-            // Revisi AI (Img2Img) Logic
             if (modalReeditBtn) {
                 modalReeditBtn.addEventListener('click', () => {
                     const promptText = modalPromptInput.value.trim();
@@ -1643,7 +1660,6 @@
                     emptyResultsState.classList.add('hidden');
                     resultsGrid.classList.remove('hidden');
 
-                    // Auto scroll to Workspace on Mobile
                     setTimeout(() => {
                         const workspaceArea = document.getElementById('main-workspace-area');
                         if (workspaceArea && window.innerWidth < 768) {
@@ -1698,7 +1714,6 @@
                 });
             }
 
-            // Quality Modal Logic
             window.openQualityModal = function(type, url = null) {
                 downloadContext = { type, url };
                 qualityOptions.classList.remove('hidden');
@@ -1770,7 +1785,6 @@
                 document.body.style.overflow = 'auto';
             });
 
-            // Upscale logic
             function dataURItoBlob(dataURI) {
                 const byteString = atob(dataURI.split(',')[1]);
                 const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
@@ -1836,7 +1850,6 @@
                 });
             }
 
-            // Animation Styles
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }

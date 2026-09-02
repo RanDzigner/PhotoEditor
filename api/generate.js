@@ -4,13 +4,18 @@ module.exports = async function handler(req, res) {
     }
 
     const API_KEY = process.env.GEMINI_API_KEY; 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${API_KEY}`;
+    const targetModel = req.body.model || 'gemini-1.5-flash'; 
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${API_KEY}`;
+
+    // Hapus properti model agar tidak memicu error dari Google API
+    const geminiPayload = { ...req.body };
+    delete geminiPayload.model;
 
     try {
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(req.body) 
+            body: JSON.stringify(geminiPayload) 
         });
 
         if (!response.ok) {
@@ -26,7 +31,6 @@ module.exports = async function handler(req, res) {
     }
 };
 
-// Konfigurasi ini yang akan mengatasi HTTP Error 413
 module.exports.config = {
     api: {
         bodyParser: {
