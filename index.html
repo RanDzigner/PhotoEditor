@@ -1,1862 +1,504 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROG PhotoEditor Pro</title>
-    <!-- Google Fonts for Premium Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>AI Image Generator & Editor - Modern</title>
+    <!-- Menggunakan Tailwind CSS untuk styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-    
-    <script>
-        // Set Theme Immediately
-        if (localStorage.getItem('color-theme') === 'light') {
-            document.documentElement.classList.remove('dark');
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-        }
-
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            300: '#86efac',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            900: '#14532d',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Menggunakan Font Awesome untuk ikon -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
+        /* Animasi kustom untuk loading */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
         }
-        .dark body { background-color: #020617; color: #f8fafc; }
-
-        /* Custom Scrollbar for Pro Feel */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #334155; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-        /* Hide scrollbar completely for specific elements */
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Canvas Grid Background */
-        .canvas-bg {
-            background-color: #f1f5f9;
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 24px 24px;
+        .loading-pulse {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        .dark .canvas-bg {
-            background-color: #020617;
-            background-image: radial-gradient(#1e293b 1px, transparent 1px);
-            background-size: 24px 24px;
+        /* Desain Glassmorphism ringan */
+        .glass-panel {
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        /* Drop Zone Styles */
+        /* Style untuk area drop gambar */
         .drop-zone {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 2px dashed #cbd5e1;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        }
-        .dark .drop-zone { 
-            border-color: #334155; 
-            background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+            border: 2px dashed rgba(156, 163, 175, 0.5);
+            transition: all 0.3s ease;
         }
         .drop-zone.dragover {
-            border-color: #22c55e;
-            background: #f0fdf4;
-            transform: scale(1.02);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
-        }
-        .dark .drop-zone.dragover { 
-            background: rgba(34, 197, 94, 0.05); 
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
-        }
-
-        /* Loaders */
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #22c55e;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        .dark .loader { border-color: #334155; border-top-color: #22c55e; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Inputs & Textareas */
-        textarea, select, input[type="number"], input[type="text"] {
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
-        }
-        .dark textarea, .dark select, .dark input[type="number"], .dark input[type="text"] {
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
-        }
-
-        /* Modals */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 90;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.85);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-
-        /* IG Layout Radio Cards Animation */
-        input[type="radio"]:checked + div {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .dark input[type="radio"]:checked + div {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Quality Card */
-        .quality-card {
-            border: 2px solid transparent;
-            background: #f8fafc;
-            border-radius: 1rem;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .dark .quality-card { background: #0f172a; border-color: #1e293b; }
-        .quality-card:hover { border-color: #cbd5e1; transform: translateY(-1px); }
-        .dark .quality-card:hover { border-color: #334155; }
-        
-        .quality-card.selected {
-            border-color: #22c55e;
-            background: #f0fdf4;
-            box-shadow: 0 4px 14px 0 rgba(34,197,94,0.15);
-        }
-        .dark .quality-card.selected { 
-            border-color: #22c55e; 
-            background: rgba(34, 197, 94, 0.08); 
-            box-shadow: 0 4px 20px 0 rgba(34,197,94,0.1);
+            border-color: #8b5cf6; /* purple-500 */
+            background-color: rgba(139, 92, 246, 0.1);
         }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 overflow-y-auto md:overflow-hidden">
-    
-    <!-- App Container (Mobile: Scrollable Full Page, Desktop: Fixed Height 3 Cols) -->
-    <div class="flex flex-col md:flex-row min-h-screen md:h-screen w-full relative">
+<body class="bg-gray-950 text-gray-100 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Latar Belakang Dekoratif -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-900/20 blur-[120px]"></div>
+        <div class="absolute top-[60%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-900/20 blur-[100px]"></div>
+    </div>
+
+    <main class="container mx-auto px-4 py-8 md:py-12 max-w-3xl flex flex-col items-center">
         
-        <!-- COLUMN 1: Sidebar Navigation -->
-        <aside class="w-full md:w-20 lg:w-[100px] flex-shrink-0 bg-white dark:bg-[#0b1120] border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800/80 flex flex-row md:flex-col items-center justify-between md:justify-start px-4 md:px-2 py-3 md:py-6 z-50 sticky top-0 md:relative overflow-x-auto md:overflow-y-auto scrollbar-hide shadow-sm md:shadow-none">
-            
-            <!-- Logo -->
-            <div class="flex-shrink-0 md:mb-8 text-center flex items-center justify-center mr-6 md:mr-0">
-                <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30">
-                    <i class="fa-solid fa-camera-retro text-white text-xl md:text-2xl"></i>
-                </div>
-            </div>
-
-            <!-- Tab Buttons -->
-            <div class="flex flex-row md:flex-col gap-2 md:gap-4 w-max md:w-full items-center">
-                <!-- Tab: Umum -->
-                <button id="tab-btn-umum" class="flex flex-col items-center justify-center gap-1 p-2 w-[70px] md:w-full md:aspect-square rounded-2xl text-[10px] md:text-xs font-bold text-brand-600 dark:text-brand-400 bg-white dark:bg-slate-800 border-2 border-brand-500 transition-all shadow-sm flex-shrink-0 group">
-                    <i class="fa-solid fa-wand-magic-sparkles text-xl md:text-2xl mb-0.5 group-hover:scale-110 transition-transform"></i>
-                    <span>Umum</span>
-                </button>
-
-                <!-- Tab: Wajah -->
-                <button id="tab-btn-wajah" class="flex flex-col items-center justify-center gap-1 p-2 w-[70px] md:w-full md:aspect-square rounded-2xl text-[10px] md:text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-2 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all flex-shrink-0 group">
-                    <i class="fa-solid fa-face-smile text-xl md:text-2xl mb-0.5 group-hover:scale-110 transition-transform"></i>
-                    <span>Wajah</span>
-                </button>
-
-                <!-- Tab: Tiru -->
-                <button id="tab-btn-tiru" class="flex flex-col items-center justify-center gap-1 p-2 w-[70px] md:w-full md:aspect-square rounded-2xl text-[10px] md:text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-2 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all flex-shrink-0 group">
-                    <i class="fa-solid fa-clone text-xl md:text-2xl mb-0.5 group-hover:scale-110 transition-transform"></i>
-                    <span>Tiru</span>
-                </button>
-
-                <!-- Tab: IG Layout -->
-                <button id="tab-btn-ig" class="flex flex-col items-center justify-center gap-1 p-2 w-[70px] md:w-full md:aspect-square rounded-2xl text-[10px] md:text-xs font-medium text-pink-500 hover:text-pink-600 dark:text-pink-400 border-2 border-transparent hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all flex-shrink-0 group">
-                    <i class="fa-brands fa-instagram text-2xl md:text-3xl mb-0.5 group-hover:scale-110 transition-transform"></i>
-                    <span>IG Layout</span>
-                </button>
-            </div>
-            
-            <!-- Spacer & Mobile specific items -->
-            <div class="md:mt-auto hidden md:block">
-                <button onclick="localStorage.removeItem('googleAiApiKey'); alert('API Key dihapus. Silakan klik Generate untuk memasukkan yang baru.');" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-500 transition-colors flex items-center justify-center" title="Hapus API Key">
-                    <i class="fa-solid fa-key"></i>
-                </button>
-            </div>
-        </aside>
-
-        <!-- COLUMN 2: Settings Panel -->
-        <section class="w-full md:w-[340px] lg:w-[400px] xl:w-[440px] flex-shrink-0 bg-white dark:bg-[#0f172a] border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800/80 flex flex-col h-auto md:h-full z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
-            
-            <!-- Header: Title & Theme Toggle -->
-            <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md z-20">
-                <div>
-                    <h2 class="font-bold text-lg text-slate-800 dark:text-white tracking-tight leading-tight">ROG ProEditor</h2>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center mt-0.5"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> Gemini 3.1 Flash</p>
-                </div>
-                <button id="theme-toggle" type="button" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-all">
-                    <i id="theme-toggle-dark-icon" class="hidden fa-solid fa-moon text-sm"></i>
-                    <i id="theme-toggle-light-icon" class="hidden fa-solid fa-sun text-sm"></i>
-                </button>
-            </div>
-
-            <!-- Scrollable Settings -->
-            <div class="flex-1 overflow-visible md:overflow-y-auto p-6 space-y-6 pb-6">
-                
-                <!-- 1. Upload Zone (Always Visible) -->
-                <div>
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center">
-                            <span class="w-6 h-6 rounded-md bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 flex items-center justify-center mr-2 text-xs">1</span> 
-                            Unggah Gambar
-                        </h3>
-                    </div>
-                    
-                    <div id="drop-zone" class="drop-zone rounded-2xl p-6 text-center cursor-pointer flex flex-col items-center justify-center min-h-[160px]">
-                        <input type="file" id="file-input" class="hidden" accept="image/jpeg, image/png, image/webp, image/heic, .heic" multiple />
-                        
-                        <div id="upload-prompt" class="pointer-events-none">
-                            <div class="w-14 h-14 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto shadow-sm mb-3 text-brand-500">
-                                <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
-                            </div>
-                            <p class="text-slate-700 dark:text-slate-200 font-semibold text-sm">Pilih atau seret gambar</p>
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 font-medium px-4">Mendukung banyak gambar sekaligus.<br>Format: JPG, PNG, WEBP, HEIC</p>
-                        </div>
-
-                        <div id="image-preview-container" class="hidden w-full flex flex-col items-center">
-                            <div class="w-full pt-1">
-                                <div class="flex justify-between items-center mb-3">
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Antrean (<span id="queue-count">0</span>)</p>
-                                    <div class="flex space-x-1.5">
-                                        <button id="clear-uploads-btn" class="text-[10px] bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 px-2.5 py-1.5 rounded-md font-bold transition-colors"><i class="fa-solid fa-trash-can"></i></button>
-                                        <button onclick="document.getElementById('file-input').click(); event.stopPropagation();" class="text-[10px] bg-brand-50 hover:bg-brand-100 dark:bg-brand-500/10 dark:hover:bg-brand-500/20 text-brand-600 dark:text-brand-400 px-2.5 py-1.5 rounded-md font-bold transition-colors"><i class="fa-solid fa-plus mr-1"></i>Tambah</button>
-                                    </div>
-                                </div>
-                                <div id="thumbnail-gallery" class="flex flex-wrap gap-2 w-full max-h-[140px] overflow-y-auto pr-1" onclick="event.stopPropagation()">
-                                    <!-- Thumbnails -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-t border-slate-100 dark:border-slate-800"></div>
-
-                <!-- 2. Dynamic Tools Area -->
-                <div class="relative">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center mb-4">
-                        <span class="w-6 h-6 rounded-md bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-2 text-xs">2</span> 
-                        Pengaturan Alat
-                    </h3>
-
-                    <!-- TAB: UMUM -->
-                    <div id="tab-content-umum" class="space-y-5 block animate-fade-in-up">
-                        <!-- Referensi Gaya -->
-                        <div class="bg-indigo-50/40 dark:bg-slate-800/40 p-4 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50 relative overflow-hidden">
-                            <div class="absolute top-0 right-0 p-2"><i class="fa-solid fa-wand-magic-sparkles text-indigo-200 dark:text-slate-700 text-3xl"></i></div>
-                            <label class="block text-xs font-bold text-indigo-900 dark:text-indigo-300 mb-2 relative z-10">Ekstrak Gaya (Opsional)</label>
-                            
-                            <div id="umum-drop-zone" class="border border-dashed border-indigo-200 dark:border-slate-600 bg-white/60 dark:bg-slate-900/60 rounded-xl p-3 text-center cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors flex flex-col items-center justify-center min-h-[90px] relative z-10">
-                                <input type="file" id="ref-image-input" class="hidden" accept="image/jpeg, image/png, image/webp, image/heic, .heic" />
-                                
-                                <div id="umum-upload-prompt">
-                                    <p class="text-indigo-700 dark:text-indigo-400 font-medium text-xs"><i class="fa-solid fa-camera mr-1"></i> Unggah referensi gaya</p>
-                                </div>
-
-                                <div id="ref-image-preview-container" class="hidden w-full flex items-center justify-between">
-                                    <div class="flex items-center gap-3 text-left">
-                                        <img id="ref-image-preview" src="" class="w-12 h-12 object-cover rounded-lg border border-indigo-200 dark:border-slate-600 shadow-sm">
-                                        <div>
-                                            <p class="text-xs font-bold text-indigo-900 dark:text-indigo-300">Gaya Diekstrak</p>
-                                            <p id="ref-extracting-text" class="text-[9px] text-indigo-600 dark:text-indigo-400 mt-0.5">Dikirim ke AI</p>
-                                        </div>
-                                    </div>
-                                    <button id="remove-ref-image-btn" class="bg-red-50 hover:bg-red-100 dark:bg-red-500/10 text-red-500 rounded-full w-7 h-7 flex items-center justify-center text-xs transition-colors shadow-sm" title="Hapus Referensi">
-                                        <i class="fa-solid fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Prompt Utama -->
-                        <div>
-                            <div class="flex justify-between items-end mb-2">
-                                <label for="prompt-input" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Instruksi Edit</label>
-                                <div class="flex gap-2">
-                                    <button id="clear-prompt-btn" class="text-[10px] text-red-500 hover:text-red-700 dark:text-red-400 font-bold transition-colors hidden uppercase">Bersihkan</button>
-                                    <button id="show-save-preset-btn" class="text-[10px] text-brand-600 dark:text-brand-400 font-bold transition-colors hidden uppercase"><i class="fa-solid fa-bookmark mr-1"></i>Simpan</button>
-                                </div>
-                            </div>
-                            <textarea id="prompt-input" rows="4" class="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all resize-none" placeholder="Tulis instruksi visual yang detail... (contoh: cyberpunk, resolusi 8k, tajam)"></textarea>
-                            
-                            <div id="save-preset-dialog" class="hidden mt-2 flex gap-2 items-center bg-white dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in-up">
-                                <input type="text" id="preset-name-input" placeholder="Nama preset..." class="flex-grow px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">
-                                <button id="confirm-save-preset-btn" class="bg-brand-500 hover:bg-brand-600 text-white px-3 py-2 text-xs rounded-lg font-bold transition-colors">Simpan</button>
-                                <button id="cancel-save-preset-btn" class="text-slate-400 hover:text-slate-600 dark:hover:text-white px-2 py-2"><i class="fa-solid fa-times"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Presets -->
-                        <div>
-                            <div class="flex justify-between items-center mb-3">
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Koleksi Preset</label>
-                                <select id="preset-category-filter" class="text-[10px] border-0 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg py-1 px-2 font-bold cursor-pointer outline-none ring-1 ring-slate-200 dark:ring-slate-700">
-                                    <option value="all">Semua Kategori</option>
-                                    <option value="favorit">⭐ Favorit</option>
-                                    <option value="pencahayaan">💡 Pencahayaan</option>
-                                    <option value="pemandangan">🌄 Alam</option>
-                                    <option value="potret">👤 Potret</option>
-                                    <option value="cg">🎮 Game/CG</option>
-                                </select>
-                            </div>
-                            <div class="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto p-1 -mx-1 scrollbar-hide" id="default-preset-container">
-                                <!-- Preset Buttons -->
-                            </div>
-                            <div class="flex flex-wrap gap-1.5 mt-2" id="custom-preset-container">
-                                <!-- Custom Presets -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB: WAJAH -->
-                    <div id="tab-content-wajah" class="space-y-5 hidden animate-fade-in-up">
-                        <div class="bg-indigo-50/40 dark:bg-slate-800/40 p-5 rounded-2xl border border-indigo-100/50 dark:border-slate-700/50">
-                            <h4 class="text-xs font-bold text-indigo-900 dark:text-indigo-300 mb-3 flex items-center uppercase tracking-wider"><i class="fa-solid fa-user-check mr-2"></i> Foto Wajah Pengganti</h4>
-                            
-                            <div id="wajah-drop-zone" class="border-2 border-dashed border-indigo-200 dark:border-slate-600 bg-white/60 dark:bg-slate-900/60 rounded-xl p-6 text-center cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors flex flex-col items-center justify-center min-h-[140px]">
-                                <input type="file" id="wajah-ref-input" class="hidden" accept="image/jpeg, image/png, image/webp, image/heic, .heic" />
-                                
-                                <div id="wajah-upload-prompt">
-                                    <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-500">
-                                        <i class="fa-solid fa-face-viewfinder text-xl"></i>
-                                    </div>
-                                    <p class="text-indigo-800 dark:text-indigo-200 font-semibold text-xs">Unggah Wajah</p>
-                                </div>
-
-                                <div id="wajah-preview-container" class="hidden w-full flex flex-col items-center relative">
-                                    <img id="wajah-preview" src="" class="w-20 h-20 object-cover rounded-full border-4 border-white dark:border-slate-800 shadow-md">
-                                    <button id="remove-wajah-btn" class="absolute top-0 right-1/4 translate-x-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] transition-colors shadow-sm">
-                                        <i class="fa-solid fa-times"></i>
-                                    </button>
-                                    <p class="text-[10px] text-indigo-600 dark:text-indigo-400 mt-2 font-medium">Wajah siap diganti</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Instruksi Wajah (Opsional)</label>
-                            <textarea id="wajah-prompt-input" rows="2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all resize-none" placeholder="Contoh: Buat dia tersenyum, gaya rambut dipertahankan..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- TAB: TIRU -->
-                    <div id="tab-content-tiru" class="space-y-5 hidden animate-fade-in-up">
-                        <div class="bg-emerald-50/40 dark:bg-slate-800/40 p-5 rounded-2xl border border-emerald-100/50 dark:border-slate-700/50">
-                            <h4 class="text-xs font-bold text-emerald-900 dark:text-emerald-300 mb-3 flex items-center uppercase tracking-wider"><i class="fa-solid fa-image-portrait mr-2"></i> Foto Referensi Idaman</h4>
-                            
-                            <div id="tiru-drop-zone" class="border-2 border-dashed border-emerald-200 dark:border-slate-600 bg-white/60 dark:bg-slate-900/60 rounded-xl p-6 text-center cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors flex flex-col items-center justify-center min-h-[140px]">
-                                <input type="file" id="tiru-ref-input" class="hidden" accept="image/jpeg, image/png, image/webp, image/heic, .heic" />
-                                
-                                <div id="tiru-upload-prompt">
-                                    <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center mx-auto mb-2 text-emerald-500">
-                                        <i class="fa-solid fa-photo-film text-xl"></i>
-                                    </div>
-                                    <p class="text-emerald-800 dark:text-emerald-200 font-semibold text-xs">Unggah Gaya Referensi</p>
-                                </div>
-
-                                <div id="tiru-preview-container" class="hidden w-full flex flex-col items-center relative">
-                                    <img id="tiru-preview" src="" class="h-24 object-contain rounded-lg border-2 border-white dark:border-slate-800 shadow-md">
-                                    <button id="remove-tiru-btn" class="absolute -top-2 right-1/4 translate-x-4 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] transition-colors shadow-sm">
-                                        <i class="fa-solid fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                            <label class="flex items-start cursor-pointer group">
-                                <div class="flex items-center h-5">
-                                    <input type="checkbox" id="tiru-mode-toggle" class="w-4 h-4 text-brand-500 bg-slate-100 border-slate-300 rounded focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-slate-800 dark:bg-slate-900 dark:border-slate-600" checked>
-                                </div>
-                                <div class="ml-3 text-xs">
-                                    <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand-500 transition-colors">Tiru Warna & Cahaya Saja</span>
-                                    <p class="text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">Hapus centang jika ingin objek/baju dirombak menjadi sama persis dengan referensi.</p>
-                                </div>
-                            </label>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Instruksi Tambahan (Opsional)</label>
-                            <textarea id="tiru-prompt-input" rows="2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all resize-none" placeholder="Kosongkan jika ingin AI langsung meniru referensi 100%"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- TAB: IG LAYOUT -->
-                    <div id="tab-content-ig" class="space-y-5 hidden animate-fade-in-up">
-                        <div class="bg-gradient-to-br from-pink-50 to-orange-50 dark:from-pink-900/10 dark:to-orange-900/10 p-5 rounded-2xl border border-pink-100 dark:border-pink-900/30">
-                            <h4 class="text-xs font-bold text-pink-700 dark:text-pink-400 mb-3 uppercase tracking-wider flex items-center">
-                                <i class="fa-brands fa-instagram text-lg mr-2"></i> Gaya Layout Instagram
-                            </h4>
-                            
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <label class="cursor-pointer group">
-                                    <input type="radio" name="ig-layout-type" value="polaroid" class="peer sr-only" checked>
-                                    <div class="p-3 border-2 border-slate-200 dark:border-slate-700 peer-checked:border-pink-500 peer-checked:bg-white dark:peer-checked:bg-slate-800 rounded-xl bg-white/50 dark:bg-slate-800/50 shadow-sm text-center transition-all duration-300 group-hover:shadow-md">
-                                        <i class="fa-regular fa-image text-2xl text-slate-400 dark:text-slate-500 peer-checked:text-pink-500 mb-1.5 transition-colors"></i>
-                                        <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Polaroid</p>
-                                    </div>
-                                </label>
-                                
-                                <label class="cursor-pointer group">
-                                    <input type="radio" name="ig-layout-type" value="filmstrip" class="peer sr-only">
-                                    <div class="p-3 border-2 border-slate-200 dark:border-slate-700 peer-checked:border-pink-500 peer-checked:bg-white dark:peer-checked:bg-slate-800 rounded-xl bg-white/50 dark:bg-slate-800/50 shadow-sm text-center transition-all duration-300 group-hover:shadow-md">
-                                        <i class="fa-solid fa-film text-2xl text-slate-400 dark:text-slate-500 peer-checked:text-pink-500 mb-1.5 transition-colors"></i>
-                                        <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Film Strip</p>
-                                    </div>
-                                </label>
-
-                                <label class="cursor-pointer group">
-                                    <input type="radio" name="ig-layout-type" value="clean-grid" class="peer sr-only">
-                                    <div class="p-3 border-2 border-slate-200 dark:border-slate-700 peer-checked:border-pink-500 peer-checked:bg-white dark:peer-checked:bg-slate-800 rounded-xl bg-white/50 dark:bg-slate-800/50 shadow-sm text-center transition-all duration-300 group-hover:shadow-md">
-                                        <i class="fa-solid fa-table-cells-large text-2xl text-slate-400 dark:text-slate-500 peer-checked:text-pink-500 mb-1.5 transition-colors"></i>
-                                        <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Clean Grid</p>
-                                    </div>
-                                </label>
-
-                                <label class="cursor-pointer group">
-                                    <input type="radio" name="ig-layout-type" value="scrapbook" class="peer sr-only">
-                                    <div class="p-3 border-2 border-slate-200 dark:border-slate-700 peer-checked:border-pink-500 peer-checked:bg-white dark:peer-checked:bg-slate-800 rounded-xl bg-white/50 dark:bg-slate-800/50 shadow-sm text-center transition-all duration-300 group-hover:shadow-md">
-                                        <i class="fa-solid fa-book-open text-2xl text-slate-400 dark:text-slate-500 peer-checked:text-pink-500 mb-1.5 transition-colors"></i>
-                                        <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Scrapbook</p>
-                                    </div>
-                                </label>
-                                
-                                <label class="cursor-pointer col-span-2 group mt-1">
-                                    <input type="radio" name="ig-layout-type" value="random-surprise" class="peer sr-only">
-                                    <div class="p-3 border-2 border-slate-200 dark:border-slate-700 peer-checked:border-transparent peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-violet-500 rounded-xl bg-white/50 dark:bg-slate-800/50 shadow-sm text-center transition-all duration-300 group-hover:shadow-md">
-                                        <i class="fa-solid fa-wand-magic-sparkles text-2xl text-slate-400 dark:text-slate-500 peer-checked:text-white mb-1.5 peer-checked:animate-pulse"></i>
-                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 peer-checked:text-white">Gaya Acak (Surprise Me!)</p>
-                                        <p class="text-[9px] text-slate-500 peer-checked:text-white/80 mt-0.5">AI akan memilih gaya unik secara random</p>
-                                    </div>
-                                </label>
-                            </div>
-                            
-                            <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase">Jumlah Grid</label>
-                                <select id="ig-photos-per-post" class="text-xs font-bold border-0 bg-slate-100 dark:bg-slate-900 text-pink-600 dark:text-pink-400 rounded-lg p-1.5 outline-none focus:ring-2 ring-pink-200 dark:ring-pink-900">
-                                    <option value="auto">Sesuai Antrean</option>
-                                    <option value="2">2 Foto</option>
-                                    <option value="3">3 Foto</option>
-                                    <option value="4">4 Foto</option>
-                                    <option value="6">6 Foto</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Tema / Elemen (Opsional)</label>
-                            <textarea id="ig-prompt-input" rows="2" class="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition-all resize-none" placeholder="Contoh: Nuansa pastel krem, tambahkan elemen bunga kering..."></textarea>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Sticky Footer inside Settings Panel -->
-            <div class="mt-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 p-5 z-40 sticky bottom-0 md:relative">
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                     <div>
-                         <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Aspek Rasio</label>
-                         <select id="aspect-ratio" class="w-full px-3 py-2 text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-all">
-                            <option value="original" selected>Original</option>
-                            <option value="1:1">1:1 (Square)</option>
-                            <option value="4:5">4:5 (IG Portrait)</option>
-                            <option value="16:9">16:9 (Landscape)</option>
-                            <option value="9:16">9:16 (Story)</option>
-                            <option value="3:2">3:2 (Standar 35mm)</option>
-                            <option value="2:3">2:3 (Potret 35mm)</option>
-                            <option value="4:3">4:3 (Standar)</option>
-                        </select>
-                     </div>
-                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Variasi</label>
-                        <input type="number" id="variations-count" min="1" max="20" value="4" class="w-full px-3 py-2 text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-all text-center">
-                    </div>
-                </div>
-                
-                <button id="generate-btn" class="w-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-[0_8px_20px_rgba(34,197,94,0.25)] transition-all flex justify-center items-center opacity-50 cursor-not-allowed group" disabled>
-                    <i class="fa-solid fa-microchip mr-2 text-lg group-hover:animate-pulse"></i> Generate Gambar AI
-                </button>
-            </div>
-        </section>
-
-        <!-- COLUMN 3: Main Canvas (Results) -->
-        <main id="main-workspace-area" class="flex-1 flex flex-col relative h-[80vh] md:h-full canvas-bg z-10 min-h-[600px] md:min-h-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800/80">
-            
-            <!-- Floating Toolbar inside Canvas -->
-            <div class="absolute top-4 left-4 right-4 z-20 flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/40 dark:border-slate-700/50 shadow-sm transition-all duration-300">
-                <div class="flex items-center gap-3">
-                    <h3 class="text-sm md:text-base font-extrabold text-slate-800 dark:text-white tracking-tight flex items-center">
-                        Workspace
-                    </h3>
-                    
-                    <div id="status-badge" class="hidden px-2.5 py-1 text-[10px] font-bold rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center border border-blue-200 dark:border-blue-500/30">
-                        <span class="relative flex h-2 w-2 mr-1.5">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                        </span>
-                        <span id="status-text">Memproses...</span>
-                    </div>
-                </div>
-                
-                <div class="flex items-center space-x-2">
-                    <button id="cancel-process-btn" class="hidden bg-red-100 hover:bg-red-200 dark:bg-red-500/20 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 text-[11px] font-bold px-3 py-1.5 rounded-lg items-center transition-colors">
-                        <i class="fa-solid fa-stop md:mr-1"></i> <span class="hidden md:inline">Batal</span>
-                    </button>
-                    
-                    <button id="clear-results-btn" class="hidden bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold px-3 py-1.5 rounded-lg items-center transition-colors">
-                        <i class="fa-solid fa-trash-can md:mr-1"></i> <span class="hidden md:inline">Hapus Semua</span>
-                    </button>
-                    
-                    <button id="download-all-btn" class="hidden bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white text-[11px] font-bold px-4 py-1.5 rounded-lg flex items-center shadow-md transition-colors">
-                        <i class="fa-solid fa-download md:mr-1.5"></i> <span class="hidden md:inline">Download Semua</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Empty State -->
-            <div id="empty-results-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 pointer-events-none pb-20 md:pb-0">
-                <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white dark:bg-slate-800/80 flex items-center justify-center mb-5 shadow-sm border border-slate-200 dark:border-slate-700/50">
-                    <i class="fa-solid fa-layer-group text-3xl md:text-4xl text-slate-300 dark:text-slate-600"></i>
-                </div>
-                <h4 class="text-lg md:text-xl font-bold text-slate-700 dark:text-slate-200">Kanvas Kosong</h4>
-                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 max-w-[250px] mt-2 leading-relaxed">Unggah foto, pilih alat di sebelah kiri, dan hasil resolusi tinggi akan muncul di sini.</p>
-            </div>
-
-            <!-- Scrollable Results Area -->
-            <div class="w-full h-full overflow-y-auto pt-20 px-4 md:px-8 pb-10">
-                <div id="results-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6 auto-rows-max">
-                    <!-- Generated Images will be placed here -->
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Custom Confirm Modal -->
-    <div id="custom-confirm-modal" class="modal flex items-center justify-center">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-xs mx-4 overflow-hidden border border-slate-100 dark:border-slate-800 p-6 text-center transform transition-all">
-            <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-50 dark:bg-red-500/10 mb-5">
-                <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Konfirmasi</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed" id="confirm-message">Apakah Anda yakin?</p>
-            <div class="flex space-x-3">
-                <button id="confirm-cancel-btn" class="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold py-3 px-4 rounded-xl transition-colors">Batal</button>
-                <button id="confirm-ok-btn" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-red-500/20">Ya, Lanjutkan</button>
-            </div>
+        <!-- Header -->
+        <div class="text-center mb-10 w-full">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                AI Image Generator & Editor
+            </h1>
+            <p class="text-gray-400 text-sm md:text-base">Buat gambar baru atau edit foto Anda dengan kecerdasan AI.</p>
         </div>
-    </div>
 
-    <!-- Image Review / Img2Img Modal -->
-    <div id="image-modal" class="modal">
-        <span class="close-modal hidden md:block text-slate-300 hover:text-white transition-colors">&times;</span>
-        <div id="modal-backdrop" class="w-full h-full flex flex-col md:flex-row items-center justify-center p-2 md:p-8 pt-12 md:pt-16 gap-4 md:gap-6 box-border">
+        <!-- Panel Utama -->
+        <div class="glass-panel w-full rounded-2xl shadow-2xl p-6 md:p-8 space-y-6">
             
-            <div class="flex-grow h-1/2 md:h-full w-full md:w-auto flex items-center justify-center relative pointer-events-none px-2 md:px-0">
-                <img id="modal-img" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl pointer-events-auto border border-white/10">
-                <button class="close-modal-mobile md:hidden absolute top-0 right-2 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center pointer-events-auto backdrop-blur"><i class="fa-solid fa-times"></i></button>
-            </div>
-            
-            <div class="w-full md:w-[340px] flex-shrink-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-t-3xl md:rounded-3xl p-6 flex flex-col h-auto md:max-h-full overflow-y-auto border border-white/20 dark:border-slate-700/50 shadow-2xl pb-8 md:pb-6">
-                <h3 class="font-bold text-lg text-slate-900 dark:text-white flex items-center mb-5 tracking-tight">
-                    <i class="fa-solid fa-wand-magic-sparkles text-brand-500 mr-2"></i> Revisi AI (Img2Img)
-                </h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Instruksi Revisi</label>
-                        <textarea id="modal-prompt-input" rows="4" class="w-full px-3 py-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/50 outline-none transition-colors resize-none"></textarea>
-                        <p class="text-[9px] text-slate-400 mt-1">Gunakan foto ini sebagai referensi dasar untuk revisi.</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Jumlah Variasi</label>
-                        <input type="number" id="modal-variations-count" min="1" max="10" value="2" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/50 outline-none transition-colors text-center font-bold">
-                    </div>
-                </div>
-
-                <div class="mt-6 space-y-3">
-                    <button id="modal-reedit-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex justify-center items-center text-xs">
-                        <i class="fa-solid fa-rotate mr-2 text-lg"></i> Proses Revisi
+            <!-- Input API Key -->
+            <div>
+                <label for="apiKey" class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fa-solid fa-key mr-2 text-indigo-400"></i>Google AI Studio API Key
+                </label>
+                <div class="flex gap-2">
+                    <input type="password" id="apiKey" 
+                        class="flex-1 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3 text-sm transition-colors" 
+                        placeholder="Masukkan API Key Anda di sini...">
+                    <button id="saveKeyBtn" onclick="saveApiKey()" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors" title="Simpan API Key">
+                        <i class="fa-solid fa-save"></i>
                     </button>
+                </div>
+                <p class="mt-2 text-xs text-gray-400">
+                    Gunakan API Key yang valid untuk menggunakan fitur edit gambar (Gemini 3.1 Flash Image).
+                </p>
+            </div>
+
+            <!-- Pilihan Mode -->
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fa-solid fa-sliders mr-2 text-blue-400"></i>Mode AI
+                </label>
+                <div class="flex bg-gray-900 p-1 rounded-lg border border-gray-700">
+                    <button id="mode-generate-btn" onclick="switchMode('generate')" class="flex-1 py-2 text-sm font-semibold rounded-md bg-gray-800 text-white shadow-sm transition-colors">
+                        Buat Gambar Baru
+                    </button>
+                    <button id="mode-edit-btn" onclick="switchMode('edit')" class="flex-1 py-2 text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-colors">
+                        Edit Gambar (Img2Img)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Area Unggah Gambar (Khusus Mode Edit) -->
+            <div id="image-upload-area" class="hidden">
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fa-solid fa-image mr-2 text-green-400"></i>Gambar Sumber
+                </label>
+                <div id="drop-zone" class="drop-zone bg-gray-900 rounded-lg p-6 text-center cursor-pointer flex flex-col items-center justify-center min-h-[150px] relative overflow-hidden" onclick="document.getElementById('image-input').click()">
+                    <input type="file" id="image-input" class="hidden" accept="image/jpeg, image/png, image/webp" onchange="handleImageSelect(event)">
                     
-                    <button id="modal-download-btn" class="w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex justify-center items-center text-xs">
-                        <i class="fa-solid fa-download mr-2 text-brand-500 text-lg"></i> Download HD
+                    <div id="upload-prompt" class="z-10">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                        <p class="text-sm text-gray-300">Klik atau seret gambar ke sini</p>
+                    </div>
+
+                    <img id="image-preview" class="absolute inset-0 w-full h-full object-contain hidden z-0 opacity-50 bg-gray-900" alt="Preview">
+                    <button id="remove-image-btn" onclick="removeImage(event)" class="hidden absolute top-2 right-2 z-20 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-times"></i>
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Quality Download Modal -->
-    <div id="quality-modal" class="modal hidden items-center justify-center">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden flex flex-col transform transition-all border border-slate-100 dark:border-slate-800">
-            <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900">
-                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center tracking-tight"><i class="fa-solid fa-layer-group text-brand-500 mr-2 text-lg"></i> Kualitas Ekspor</h3>
-                <button id="close-quality-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors bg-slate-100 dark:bg-slate-800 w-8 h-8 rounded-full flex items-center justify-center">
-                    <i class="fa-solid fa-times"></i>
-                </button>
+            <!-- Input Prompt -->
+            <div>
+                <label for="prompt" id="prompt-label" class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2 text-purple-400"></i>Deskripsi Gambar (Prompt)
+                </label>
+                <textarea id="prompt" rows="4" 
+                    class="bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block w-full p-3 text-sm transition-colors resize-none" 
+                    placeholder="Contoh: Seekor kucing astronot sedang minum kopi di planet Mars, gaya fotorealistik..."></textarea>
             </div>
+
+            <!-- Tombol Generate -->
+            <button id="actionBtn" onclick="processAction()" 
+                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg py-3 px-5 shadow-lg transform transition-all active:scale-95 flex justify-center items-center gap-2">
+                <i class="fa-solid fa-image"></i>
+                <span id="actionBtnText">Buat Gambar</span>
+            </button>
             
-            <div class="p-6 space-y-3 bg-slate-50 dark:bg-[#0b1120]" id="quality-options">
-                <div class="quality-card selected" data-quality="1080p">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-slate-900 dark:text-white text-sm">1080p (FHD)</p>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Kualitas Asli AI. EXIF Dipertahankan.</p>
-                        </div>
-                        <i class="fa-solid fa-circle-check text-brand-500 text-xl check-icon"></i>
-                    </div>
-                </div>
-                
-                <div class="quality-card" data-quality="2K">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-slate-900 dark:text-white text-sm">2K (QHD)</p>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">High Quality. Upscaling ringan.</p>
-                        </div>
-                        <i class="fa-solid fa-circle-check text-slate-300 dark:text-slate-600 text-xl check-icon hidden"></i>
-                    </div>
-                </div>
+            <!-- Pesan Error -->
+            <div id="errorMessage" class="hidden bg-red-900/50 border border-red-500/50 text-red-200 p-3 rounded-lg text-sm"></div>
 
-                <div class="quality-card" data-quality="4K">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-slate-900 dark:text-white text-sm flex items-center">4K (UHD) <i class="fa-solid fa-crown text-yellow-500 ml-2 text-xs"></i></p>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Penajaman aktif. Resolusi Tinggi.</p>
-                        </div>
-                        <i class="fa-solid fa-circle-check text-slate-300 dark:text-slate-600 text-xl check-icon hidden"></i>
-                    </div>
-                </div>
-
-                <div class="quality-card" data-quality="8K">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-slate-900 dark:text-white text-sm flex items-center">8K (Ultra HD) <i class="fa-solid fa-fire text-orange-500 ml-2 text-xs"></i></p>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Penajaman ekstra maksimal.</p>
-                        </div>
-                        <i class="fa-solid fa-circle-check text-slate-300 dark:text-slate-600 text-xl check-icon hidden"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div id="upscale-processing" class="hidden p-8 text-center bg-slate-50 dark:bg-[#0b1120]">
-                <div class="loader mx-auto mb-5 !w-10 !h-10 !border-4 !border-t-4 border-t-brand-500"></div>
-                <p id="upscale-text" class="text-sm font-bold text-slate-900 dark:text-white mb-2">Memproses Resolusi...</p>
-                <p class="text-[10px] text-slate-500 dark:text-slate-400">Menyempurnakan detail ketajaman.</p>
-            </div>
-
-            <div class="p-5 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900" id="download-action-area">
-                <button id="confirm-download-btn" class="w-full bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 font-bold py-3.5 px-4 rounded-xl shadow-lg transition-colors flex justify-center items-center text-sm">
-                    Mulai Unduh
-                </button>
-            </div>
         </div>
-    </div>
 
-    <!-- Tooltip Preset -->
-    <div id="preset-image-popup" class="hidden fixed z-[100] pointer-events-none transform -translate-x-1/2 -translate-y-full w-48 h-48 bg-white dark:bg-slate-800 p-1.5 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 transition-all duration-200 opacity-0 scale-95 origin-bottom">
-        <img id="preset-popup-img" src="" alt="Contoh" class="w-full h-full object-cover rounded-xl bg-slate-100 dark:bg-slate-900">
-        <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white dark:bg-slate-800 border-r border-b border-slate-200 dark:border-slate-700 rotate-45"></div>
-    </div>
+        <!-- Area Hasil Gambar -->
+        <div id="resultArea" class="w-full mt-8 hidden flex-col items-center">
+            <h2 class="text-xl font-bold mb-4 text-gray-200 self-start">Hasil Gambar:</h2>
+            
+            <!-- Teks Prompt yang disempurnakan Gemini -->
+            <div id="enhancedPromptArea" class="w-full mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700 hidden">
+                <p class="text-xs text-gray-400 mb-1"><i class="fa-solid fa-robot mr-1"></i> Gemini 3.6 Flash menyempurnakan prompt Anda menjadi:</p>
+                <p id="enhancedPromptText" class="text-sm text-gray-200 italic"></p>
+            </div>
 
+            <div class="relative w-full rounded-xl overflow-hidden glass-panel border border-gray-700 aspect-square md:aspect-video flex items-center justify-center bg-gray-900">
+                <!-- Status Loading -->
+                <div id="loadingState" class="hidden flex-col items-center justify-center absolute inset-0 bg-gray-900/80 z-10">
+                    <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p id="loadingText" class="text-indigo-300 font-medium animate-pulse">Memproses...</p>
+                </div>
+
+                <!-- Gambar yang dihasilkan -->
+                <img id="generatedImage" src="" alt="Hasil Gambar AI" class="w-full h-full object-contain hidden transition-opacity duration-500 opacity-0">
+            </div>
+
+            <!-- Tombol Download -->
+            <button id="downloadBtn" onclick="downloadImage()" class="hidden mt-6 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white font-medium rounded-lg py-2 px-6 transition-colors flex items-center gap-2 shadow-md">
+                <i class="fa-solid fa-download"></i> Unduh Gambar
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-gray-600 text-sm">
+            <p>Dibuat untuk Vercel • Diberdayakan oleh Gemini Flash</p>
+        </footer>
+
+    </main>
+
+    <!-- Script Logika Aplikasi -->
     <script>
+        // State variables
+        let currentMode = 'generate'; // 'generate' or 'edit'
+        let uploadedImageBase64 = null;
+        let uploadedImageMimeType = null;
+
+        // Inisialisasi saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
-            // Theme toggle initialization
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-            const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
-            if (document.documentElement.classList.contains('dark')) {
-                themeToggleLightIcon.classList.remove('hidden');
-            } else {
-                themeToggleDarkIcon.classList.remove('hidden');
+            const savedKey = localStorage.getItem('googleAiApiKey');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
             }
 
-            themeToggleBtn.addEventListener('click', function() {
-                themeToggleDarkIcon.classList.toggle('hidden');
-                themeToggleLightIcon.classList.toggle('hidden');
-
-                if (document.documentElement.classList.contains('dark')) {
-                    document.documentElement.classList.remove('dark');
-                    localStorage.setItem('color-theme', 'light');
-                } else {
-                    document.documentElement.classList.add('dark');
-                    localStorage.setItem('color-theme', 'dark');
-                }
-            });
-
-            // Logika untuk menyimpan/memanggil API Key Google dengan aman
-            function getApiKey() {
-                let key = localStorage.getItem('googleAiApiKey');
-                if (!key) {
-                    key = prompt('Perhatian!\nAgar ROG Editor Pro ini bisa berjalan, silakan masukkan Google AI Studio API Key Anda:');
-                    if (key) {
-                        localStorage.setItem('googleAiApiKey', key);
-                    }
-                }
-                return key;
-            }
-
-            // State variables
-            let uploadedImages = []; 
-            let generatedImages = []; 
-            let activeTasksCount = 0; 
-            
-            let downloadContext = { type: 'single', url: null }; 
-            let selectedQuality = '1080p';
-            
-            let activeRefImage = null; 
-            let activeFaceRefImage = null; 
-            let activeTiruRefImage = null; 
-
-            // DOM Elements
+            // Setup Drag and Drop
             const dropZone = document.getElementById('drop-zone');
-            const fileInput = document.getElementById('file-input');
-            const uploadPrompt = document.getElementById('upload-prompt');
-            const imagePreviewContainer = document.getElementById('image-preview-container');
-            const thumbnailGallery = document.getElementById('thumbnail-gallery');
-            const queueCount = document.getElementById('queue-count');
             
-            const promptInput = document.getElementById('prompt-input');
-            const clearPromptBtn = document.getElementById('clear-prompt-btn');
-            
-            const presetCategoryFilter = document.getElementById('preset-category-filter');
-            const defaultPresetContainer = document.getElementById('default-preset-container');
-
-            // --- Database Preset ---
-            const defaultPresetsData = [
-                { category: 'favorit', name: 'Sinar Matahari', image: 'https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?q=80&w=300&auto=format&fit=crop', prompt: 'Fotografi sinematik hiper-realistis, perspektif sudut lebar, fokus latar depan yang tajam dengan bokeh latar belakang yang lembut. Pencahayaan adalah saat golden hour di awal siang hari, menampilkan sinar matahari hangat dan terarah, bayangan yang dalam dan berbintik-bintik, serta suar matahari yang lembut. Palet warnanya cerah dan sangat jenuh, ditandai dengan warna kuning keemasan yang kaya, hijau zamrud yang subur, dan biru langit yang dalam. Suasananya idilis, damai, dan nostalgia' },
-                { category: 'favorit', name: 'Morning Light', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=300&auto=format&fit=crop', prompt: 'Early morning light with yellow tones, soft edge light highlights the hair, clothes and lines of the subject. The soft light from the sun creates a dreamy feel, while the long natural shadows on the ground create depth and realism. Add a dramatic mist effect with a thin layer of mist in the distant background. As the mist approaches the foreground, it becomes thinner and lighter, ensuring the main subject remains sharp and visible. The mist creates depth and atmosphere, with subtle shadows fading into the distance. It is cinematic, atmospheric and has great detail. No editing, no face editing, “Keep the face out of the details”' },
-                { category: 'potret', name: 'Upscale 8K', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300&auto=format&fit=crop', prompt: 'Tingkatkan resolusi, pertajam detail, buat pencahayaan menjadi studio profesional 8k' },
-                { category: 'pemandangan', name: 'Cinematic Snow', image: 'https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?q=80&w=300&auto=format&fit=crop', prompt: 'Digital cinematic art style with film-grade visuals. High dynamic range, rich color layers, strong light-shadow contrast, ultra-high definition details, close-up composition. Heavy snowfall in motion, snow particles scattering dynamically. Foreground snow blur to enhance depth of field. Scene structure and main composition remain unchanged, environment covered in snow. Dynamic background blur, multiple light sources shaping depth, preserved shadow details. Strong perspective, enhanced sense of speed and visual impact. Maintain original aspect ratio, no distortion of text or human subjects.' },
-                { category: 'cg', name: 'Game CG Leaves', image: 'https://images.unsplash.com/photo-1507371341162-763b5e419408?q=80&w=300&auto=format&fit=crop', prompt: 'Visual Style and Texture: Game-level CG texture, cinematic-level visual performance. Ultra HD resolution (Ultra HD / 8K details). Rich color layering, high saturation but not overexposed. Enhanced shadows and contrast to strengthen depth. Composition and Camera: Close-up shots. Strong perspective composition. Maintain the original aspect ratio and composition. Dynamics and Atmosphere: Falling leaves splashing to create a high-speed motion scene. Foreground leaves blurred (Foreground Bokeh Blur). Motion blur applied to both foreground and background. Background dynamically blurred to emphasize the sense of speed of the subject. Lighting and Environment: Bright sunlight, natural lighting. Blue sky and white clouds as the background environment. Interwoven light and shadow, enhanced volumetric light and highlight edges. Subject and Detail Requirements (Mandatory Constraints): Keep the facial structure of characters completely unchanged, no stretching or distortion. All text content in the image must remain 100% unchanged, no modification or redrawing. Preserve the original proportions, no cropping or stretching.' },
-                { category: 'pencahayaan', name: 'Cinematic Rain', image: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=300&auto=format&fit=crop', prompt: 'Ultra-realistic cinematic style. Reconstruct the image while preserving the original composition and subject position. Enhance overall lighting and color depth to awaken the scene from a flat, realistic look. Dramatically expand the sky layers with dynamic clouds and strong light-shadow contrast. A powerful volumetric light enters from the side-back, breaking through the clouds and illuminating the environment. Add subtle rain mist, fine particles, and atmospheric perspective to increase spatial depth. Boost brightness and saturation naturally, avoiding over-stylization. Slight motion blur in the foreground, sharp mid-ground and background for cinematic depth. Maintain the original aspect ratio with no distortion.' },
-                { category: 'cg', name: 'UE5 Cityscape', image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=300&auto=format&fit=crop', prompt: '3A game CG rendered cityscape, Unreal Engine 5 level visual quality, cinematic lighting and shading, preserve the original city structure exactly, buildings sharp and well-defined, extremely rich and realistic details,overall image bright and clear, slightly high exposure, clean and vivid colors, high saturation but natural, clear and transparent sky, pure blue sky, soft and volumetric clouds with strong depth and layering,strong sunlight illuminating the city, clear directional lighting, creating strong light and shadow contrast with long shadows, visible volumetric lighting, light beams passing through buildings and streets, enhancing spatial depth,glass buildings reflecting the sky and environment, clean and bright highlights with realistic reflections,ground with subtle reflections and highlight spots, enhancing texture without excessive wetness,clear atmospheric perspective in the distance, strong depth layering, overall image clean and crisp,high dynamic range (HDR), highlights bright but not blown out, shadows clean without muddiness, overall slight glow effect, sharp and clear image, realistic with high-end game-like visual quality' },
-                { category: 'cg', name: 'AAA CG City', image: 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=300&auto=format&fit=crop', prompt: 'AAA game CG rendering style cityscape Unreal Engine level visual quality Real-time game engine rendering effect Cinematic AAA game CG visuals Ultra-detailed city modeling quality Preserve the real city structure, sharp and clean building edges Rich street details, epic game-style sky High dynamic range HDR sky, volumetric clouds Dense cloud structures with clear cloud layers Realistic sky lighting system, sunlight piercing through clouds Soft volumetric light beams, sky light blending with ambient light Atmospheric perspective in the distance, light haze in the far cityscape Layered gradient between sky and city Realistic reflections on glass buildings Street reflections, slightly wet ground reflections Cinematic lighting layers, high-quality texture details Realistic light and shadow contrast, cinematic composition' },
-                { category: 'cg', name: 'Cyberpunk Night', image: 'https://images.unsplash.com/photo-1555617781-b55288cece75?q=80&w=300&auto=format&fit=crop', prompt: 'Digital cinematic art style. Film-grade cyberpunk night cityscape, ultra-high definition. Overall cool-toned color palette, dominated by blue and purple neon, with selective high-saturation accents. Low-angle close-up shot with strong perspective, emphasizing the subject and the depth of the urban space. City neon lights glowing and flowing, stretched light trails, foreground bokeh blur, with motion blur added to enhance a sense of speed. Dense skyscrapers in the background, rain-soaked streets reflecting neon lights, subtle fog and atmospheric particles in the air. Strong light-shadow contrast, rich dark-tone layering, multiple light sources interweaving, creating a tense and futuristic visual impact. Keep the original aspect ratio.' },
-                { category: 'cg', name: 'Game CG Impact', image: 'https://images.unsplash.com/photo-1542272604-784c07c299ca?q=80&w=300&auto=format&fit=crop', prompt: 'Game-CG style with strong artistic impact and cinematic feel. Rich colors with layered shadows. Ultra-high-definition details. Close-up shot with a low-angle perspective and strong depth. Dynamic motion blur in both foreground and background. Flying leaves with foreground bokeh blur. Bright sunlight, blue sky, dramatic light and shadow interaction. Emphasize speed, power, and visual impact. Keep original aspect ratio.' },
-                { category: 'potret', name: 'Moonlit Setting', image: 'https://images.unsplash.com/photo-1532767153582-b1a0e5145009?q=80&w=300&auto=format&fit=crop', prompt: 'a moonlit setting, her facial features bathed in soft light that accentuates the subtle nuances of her expression. using da Vinci\'s skill with shadow and light, creating a captivating interplay that accentuates the mysterious aura surrounding her.' },
-                { category: 'pencahayaan', name: 'Cinematic Aesthetic', image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic aesthetic. Cool, faded color gradients with high-contrast, bright objects. Soft twilight lighting, deep shadows. Misty, smoky atmospheres, overcast twilight skies. Shallow depth of field, a somber, sophisticated, hyper-realistic style.' },
-                { category: 'potret', name: 'Cinematic photo', image: 'https://images.unsplash.com/photo-1514539079130-25950c84af65?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic photography, traditional architectural style. Moody, dim lighting, warm yellow light. Gradient shades of turquoise and faded dark gray. High contrast between warm and cool tones. Atmospheric, calm, melancholic atmosphere. Blurred, fading background depth.' },
-                { category: 'pencahayaan', name: 'Dark Concept', image: 'https://images.unsplash.com/photo-1504253163759-c23fccaebb55?q=80&w=300&auto=format&fit=crop', prompt: 'A dark concept, a superb cinematic low-angle perspective. Dim, gloomy lighting, soft, diffuse light from above filtered through thick atmospheric haze and volumetric fog. A muted, washed-out color palette dominated by charcoal, slate blue, and metallic gray, punctuated by warm yellow light spilling from shadowed arches. A melancholic noir atmosphere, a gloomy, mysterious, and expansive aesthetic. A damp, overcast atmosphere, wet surfaces with subtle reflections, thick fog obscuring the distant background. High contrast between the pitch-black shadows and the pale, misty sky.' },
-                { category: 'pencahayaan', name: 'Golden Hour', image: 'https://images.unsplash.com/photo-1495567720989-cebdbdd97913?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic style, shallow depth of field, soft bokeh. Golden hour backlighting, prominent edge light, soft lens flare. Subdued earth tones, warm gold palette, faded greens. A subtle, misty atmosphere, floating particles of light. A calm and peaceful atmosphere. A soft-focus environment, warm, diffused sunlight.' },
-                { category: 'pencahayaan', name: 'Sunlight Filter', image: 'https://images.unsplash.com/photo-1500389279585-78e7f8477ffc?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic photography with shallow depth of field and soft bokeh. Soft, diffused daylight with soft backlighting and sunlight filtering through the canopy of leaves. High-contrast color grading featuring deep, soft blacks and luminous, creamy whites blended with lush, muted greens. Cinematic aesthetic, calm and peaceful atmosphere. Clear, soft morning light. Natural textures, sharp details.' },
-                { category: 'pencahayaan', name: 'Golden (Bright)', image: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=300&auto=format&fit=crop', prompt: 'A cinematic photography style with intense golden hour lighting, featuring a bright, luminous sun disk and strong backlighting that creates a shimmering edge glow. The color grading uses a warm, monochromatic palette with rich golden yellows, oranges, and yellows. The atmosphere is atmospheric and serene, characterized by thick morning fog and a softening misty environment. The soft-focus background with a shallow depth of field highlights dusty air particles and a dreamy, nostalgic glow, transitioning to a luminous, mist-filled horizon. High dynamic range with deep shadows and bright, diffused highlights.' },
-                { category: 'pencahayaan', name: 'Low Lighting', image: 'https://images.unsplash.com/photo-1444090542259-0af8fa96557e?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic atmospheric photography, low lighting, thick, diffuse fog, deep emerald green and dark turquoise hues, a somber and remote aesthetic. Overcast and humid weather, thick fog, soft light scattering, high-contrast shadows, humid environment, mysterious and serene atmosphere.' },
-                { category: 'pencahayaan', name: 'Golden 1', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic golden hour photography, subtle backlighting with brilliant edge light halos, a warm honey and golden yellow color palette, rich earth tones. Shallow depth of field, soft bokeh background with soft-focus foliage and shimmering orbs of light. A serene and nostalgic atmosphere, intense afternoon sunlight, subtle lens flare, scattered gold dust particles dancing in the light, high contrast, photorealistic, 8k.' },
-                { category: 'pencahayaan', name: 'Golden 2', image: 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic photography, shallow depth of field, soft bokeh. Golden hour backlighting, warm rim light, sunlight filtering through foliage. Natural green and yellow-brown color palette, film-like coloring. Calm and nostalgic atmosphere. Blurred background.' },
-                { category: 'pencahayaan', name: 'Afternoon Gold', image: 'https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?q=80&w=300&auto=format&fit=crop', prompt: 'Hyper-realistic cinematic photography, wide-angle perspective, sharp foreground focus with soft background bokeh. The lighting is early afternoon golden hour, featuring warm, directional sunlight, deep, dappled shadows, and soft sun flare. The color palette is vibrant and highly saturated, characterized by rich golden yellows, lush emerald greens, and deep sky blues. The atmosphere is idyllic, peaceful, and nostalgic. The environment includes a clear sky with scattered fluffy white clouds, reflecting light with gentle ripples, from in front of a soft softbox light.' },
-                { category: 'potret', name: 'Low Key', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop', prompt: 'Low-key cinematic photography, pitch-black background. Dramatic chiaroscuro lighting, high contrast. Warm golden yellow highlights, dark, faded shadows. The final result is soft light, a moody, intimate atmosphere. Sharp focus on illuminated textures.' },
-                { category: 'pemandangan', name: 'Nature Photo', image: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic nature photography style, intense volumetric god rays, dramatic crepuscular light filtering through a dense overhead canopy, ethereal and mystical atmosphere, lush emerald green and warm golden color palette, high contrast, backlighting, deep moody shadows, subtle morning mist, floating dust motes, tranquil and serene mood, rich organic textures, dappled sunlight on layered foliage.' },
-                { category: 'pencahayaan', name: 'Documentary', image: 'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic documentary-style photography, ethereal and serene mood, dramatic backlighting with intense crepuscular rays (god rays) piercing through dense foliage, thick atmospheric morning mist and golden haze, warm amber and sepia-toned color grading, high-contrast silhouettes against a luminous background, soft focus on dust particles, intricate framing with dark silhouetted branches.' },
-                { category: 'pencahayaan', name: 'Backlighting', image: 'https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?q=80&w=300&auto=format&fit=crop', prompt: 'The photography style is cinematic and ethereal. Dramatic backlighting with intense golden sunset rays filtering through the dense canopy of trees. Thick, low-lying morning mist creates a deep, atmospheric perspective and dreamlike light. The color setting features high-contrast tones of warm golden yellow and honey-gold highlights against cool, soft turquoise shadows. The depth of the luminous, overexposed background is contrasted with the rich, textured foreground shadows. The Tyndall effect, with dust grains appearing to dance in the light beams. The damp, muddy ground environment with pools of water reflecting light, scattered leaf litter, and small patches of bright green foliage. A magical, nostalgic, and serene atmosphere with soft, misty bokeh in the background.' },
-                { category: 'pemandangan', name: 'Landscape', image: 'https://images.unsplash.com/photo-1516214104703-d2507f3c47ce?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic landscape photography, ethereal and mystical atmosphere, dramatic crepuscular rays piercing through a dense and hazy forest canopy, brilliant glowing white and golden backlighting, thick morning mist and soft-focus fog diffusing the light, high-contrast lighting with deep shadows in the periphery, vibrant emerald green tropical foliage, naturalistic color grading with warm highlights and cool earthy tones, damp dark soil, serene and magical mood, wide-angle perspective, dreamy and radiant light quality.' },
-                { category: 'pemandangan', name: 'Wide-angle', image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic wide-angle landscape photography, dramatic golden hour lighting with low-angle sun producing long, deep shadows and brilliant highlights, teal and orange color gradations, vibrant saturation with high contrast. Subtle and majestic atmosphere, serene atmosphere. Clear sky with soft orange clouds on the horizon, low morning fog and atmospheric haze, soft smoke drifting in the distance. Sharp textures on foreground elements transitioning to hazy atmospheric perspective, high-definition composition, highly detailed, frame-within-frame.' },
-                { category: 'pemandangan', name: 'Silhouette', image: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=300&auto=format&fit=crop', prompt: 'A minimalist silhouette photography style with high contrast, vibrant sunset aesthetic with intense golden hour backlighting. on the horizon to a deep deep orange-yellow above. Warm monochromatic color palette with high saturation. Deep black foreground with sharp relief, creating a clear silhouette against the luminous background. Atmospheric haze softens the horizon line under a clear, cloudless sky. A calm, timeless, and peaceful atmosphere, cinematic lighting, National Geographic travel photography style.' },
-                { category: 'pemandangan', name: 'Sunset Gunung', image: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?q=80&w=300&auto=format&fit=crop', prompt: 'Transform this photo into a warm golden hue. Add soft sunlight coming from the side, creating cinematic lighting and soft shadows on the subject. Enhance the sky with a vibrant blue-to-orange sunset gradient and atmospheric clouds (optional if any). Maintain the original composition, facial details, and realistic outdoor photography look. Ultra-realistic, cinematic, atmospheric, high-detail, natural lighting photography.' },
-                { category: 'pencahayaan', name: 'Cinematic Night', image: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic night photography, aesthetic. High contrast lighting featuring warm light from above contrasts with cool turquoise light. Gradations of turquoise and orange, deep shadows and bright red highlights. Nighttime atmosphere. Rough texture, fine film grain, sharp focus.' },
-                { category: 'pencahayaan', name: 'Urban Night', image: 'https://images.unsplash.com/photo-1600180758890-a54df666d6a4?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic urban night photography. High contrast lighting featuring warm light from above contrasts with cool turquoise light. Gradations of turquoise and orange, deep shadows and bright red highlights. Nighttime atmosphere. fine film grain, sharp focus.' },
-                { category: 'pencahayaan', name: 'Senja Dramatis', image: 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic photography style, intense volumetric sunlight, dramatic dusk light filtering through the dense canopy overhead, ethereal and mystical atmosphere, rich emerald green and warm golden color palette, high contrast, backlighting, deep and moody shadows, fine morning mist, floating dust grains, calm and peaceful atmosphere, rich organic textures, sun rays shading on layered foliage.' },
-                { category: 'pemandangan', name: 'Nostalgia', image: 'https://images.unsplash.com/photo-1445264718234-a623be589d37?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic photography, dawn atmosphere. Soft, diffused lighting, fine morning mist, soft sunlight. Earthy color palette, muted greens, dark browns. Shallow depth of field, background bokeh. A calm and nostalgic atmosphere. Damp fog obscures the distant trees. High contrast between the shaded foreground and the bright, misty background.' },
-                { category: 'pencahayaan', name: 'Kabut Pagi', image: 'https://images.unsplash.com/photo-1480497490787-505ec076689f?q=80&w=300&auto=format&fit=crop', prompt: 'Cinematic photography, a subtle, misty atmosphere. Dramatic sunlight pierces through the thick morning fog. Soft color gradients with deep teal and forest green. Soft, diffused sunset lighting. High atmospheric perspective, humid tropical environment, moody and serene aesthetic. Sharp foreground details against a soft bokeh background.' },
-                { category: 'favorit', name: 'Berkabut Film', image: 'https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?q=80&w=300&auto=format&fit=crop', prompt: 'A foggy, cinematic shot. Morning golden hour lighting, with soft sunlight filtering through the thick fog. A gradation of warm, dark greens and hazy lavender hues. A calm atmosphere, diffused light, and a high-contrast, luminous background.' },
-                { category: 'pencahayaan', name: 'Strobist', image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=300&auto=format&fit=crop', prompt: 'Tingkatkan resolusi, pertajam detail, buat pencahayaan menjadi studio profesional 8k, perbaiki pencahayaan , pencahayaan sinematik, Buat wajah menjadi terang, foto Strobist , effect lampu flash dari arah samping , background dramatis dan sinematik, bentuk wajah tetap & background tetap' },
-                { category: 'pencahayaan', name: 'Panggung', image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=300&auto=format&fit=crop', prompt: 'Tingkatkan resolusi, pertajam detail, buat pencahayaan menjadi studio profesional 8k, perbaiki pencahayaan , pencahayaan sinematik, Buat wajah menjadi terang , tambahkan effect asap, effect cahaya lampu panggung, bentuk wajah tetap & background tetap' },
-                { category: 'favorit', name: 'Light Fashion', image: 'https://images.unsplash.com/photo-1611042553365-9b101441c135?q=80&w=300&auto=format&fit=crop', prompt: 'Tingkatkan resolusi, pertajam detail, buat pencahayaan menjadi studio profesional 8k, tambahkan effect cahaya Ungu , Orange yang mengenai tubuh, dan backlight kuning yang menembus rambut dan tubuh, pencahayaan sinematik, wajah karakter tetap , background tetap' }
-            ];
-
-            // Render Presets
-            function renderDefaultPresets(filter = 'all') {
-                defaultPresetContainer.innerHTML = '';
-                const filtered = filter === 'all' ? defaultPresetsData : defaultPresetsData.filter(p => p.category === filter);
-                
-                filtered.forEach(preset => {
-                    const btn = document.createElement('button');
-                    btn.className = 'preset-btn px-3 py-1.5 text-[10px] font-bold bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 transition-all shadow-sm';
-                    btn.dataset.image = preset.image;
-                    btn.dataset.prompt = preset.prompt;
-                    btn.textContent = preset.name;
-                    defaultPresetContainer.appendChild(btn);
-                });
-            }
-
-            renderDefaultPresets();
-
-            presetCategoryFilter.addEventListener('change', (e) => {
-                renderDefaultPresets(e.target.value);
-            });
-
-            // Preset Button Click
-            defaultPresetContainer.addEventListener('click', (e) => {
-                const btn = e.target.closest('.preset-btn');
-                if (!btn) return;
-                
-                promptInput.value = btn.dataset.prompt;
-                
-                const originalClasses = btn.className;
-                btn.classList.add('ring-2', 'ring-brand-500', 'bg-brand-50', 'dark:bg-slate-700');
-                setTimeout(() => btn.className = originalClasses, 300);
-
-                checkReadiness();
-                showSavePresetBtn.classList.remove('hidden');
-                clearPromptBtn.classList.remove('hidden');
-                clearPromptBtn.classList.add('block');
-            });
-            
-            const umumDropZone = document.getElementById('umum-drop-zone');
-            const umumUploadPrompt = document.getElementById('umum-upload-prompt');
-            const refExtractingText = document.getElementById('ref-extracting-text');
-            const refImageInput = document.getElementById('ref-image-input');
-            const refImagePreviewContainer = document.getElementById('ref-image-preview-container');
-            const refImagePreview = document.getElementById('ref-image-preview');
-            const removeRefImageBtn = document.getElementById('remove-ref-image-btn');
-            
-            const wajahDropZone = document.getElementById('wajah-drop-zone');
-            const wajahRefInput = document.getElementById('wajah-ref-input');
-            const wajahUploadPrompt = document.getElementById('wajah-upload-prompt');
-            const wajahPreviewContainer = document.getElementById('wajah-preview-container');
-            const wajahPreview = document.getElementById('wajah-preview');
-            const removeWajahBtn = document.getElementById('remove-wajah-btn');
-            const wajahPromptInput = document.getElementById('wajah-prompt-input');
-            
-            const tiruDropZone = document.getElementById('tiru-drop-zone');
-            const tiruRefInput = document.getElementById('tiru-ref-input');
-            const tiruUploadPrompt = document.getElementById('tiru-upload-prompt');
-            const tiruPreviewContainer = document.getElementById('tiru-preview-container');
-            const tiruPreview = document.getElementById('tiru-preview');
-            const removeTiruBtn = document.getElementById('remove-tiru-btn');
-            const tiruPromptInput = document.getElementById('tiru-prompt-input');
-            const tiruModeToggle = document.getElementById('tiru-mode-toggle');
-
-            const igPromptInput = document.getElementById('ig-prompt-input');
-            const igPhotosPerPost = document.getElementById('ig-photos-per-post');
-
-            const showSavePresetBtn = document.getElementById('show-save-preset-btn');
-            const savePresetDialog = document.getElementById('save-preset-dialog');
-            const presetNameInput = document.getElementById('preset-name-input');
-            const confirmSavePresetBtn = document.getElementById('confirm-save-preset-btn');
-            const cancelSavePresetBtn = document.getElementById('cancel-save-preset-btn');
-            const customPresetContainer = document.getElementById('custom-preset-container');
-            
-            let customPresets = JSON.parse(localStorage.getItem('rog_custom_presets')) || [];
-
-            const aspectRatioSelect = document.getElementById('aspect-ratio');
-            const variationsCountSelect = document.getElementById('variations-count');
-            
-            const generateBtn = document.getElementById('generate-btn');
-            const downloadAllBtn = document.getElementById('download-all-btn');
-            const clearResultsBtn = document.getElementById('clear-results-btn');
-            const clearUploadsBtn = document.getElementById('clear-uploads-btn');
-            
-            const emptyResultsState = document.getElementById('empty-results-state');
-            const resultsGrid = document.getElementById('results-grid');
-            const statusBadge = document.getElementById('status-badge');
-            const cancelProcessBtn = document.getElementById('cancel-process-btn');
-
-            let currentAbortController = new AbortController();
-
-            const modal = document.getElementById('image-modal');
-            const modalImg = document.getElementById('modal-img');
-            const closeModalBtn = document.querySelector('.close-modal');
-            const closeModalMobileBtn = document.querySelector('.close-modal-mobile');
-            const modalDownloadBtn = document.getElementById('modal-download-btn');
-            
-            const modalPromptInput = document.getElementById('modal-prompt-input');
-            const modalVariationsCount = document.getElementById('modal-variations-count');
-            const modalReeditBtn = document.getElementById('modal-reedit-btn');
-
-            const qualityModal = document.getElementById('quality-modal');
-            const closeQualityModalBtn = document.getElementById('close-quality-modal');
-            const qualityCards = document.querySelectorAll('.quality-card');
-            const confirmDownloadBtn = document.getElementById('confirm-download-btn');
-            const upscaleProcessing = document.getElementById('upscale-processing');
-            const qualityOptions = document.getElementById('quality-options');
-            const downloadActionArea = document.getElementById('download-action-area');
-            const upscaleText = document.getElementById('upscale-text');
-
-            const presetPopup = document.getElementById('preset-image-popup');
-            const presetPopupImg = document.getElementById('preset-popup-img');
-
-            let currentModalImageUrl = '';
-            let activeTab = 'umum'; 
-
-            // --- Custom Confirm Modal Logic ---
-            const customConfirmModal = document.getElementById('custom-confirm-modal');
-            const confirmMessage = document.getElementById('confirm-message');
-            const confirmOkBtn = document.getElementById('confirm-ok-btn');
-            const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
-            let pendingConfirmCallback = null;
-
-            function showConfirmDialog(message, onConfirm) {
-                confirmMessage.textContent = message;
-                pendingConfirmCallback = onConfirm;
-                customConfirmModal.style.display = "flex";
-                document.body.style.overflow = 'hidden';
-            }
-
-            function hideConfirmDialog() {
-                customConfirmModal.style.display = "none";
-                document.body.style.overflow = 'auto';
-                pendingConfirmCallback = null;
-            }
-
-            confirmCancelBtn.addEventListener('click', hideConfirmDialog);
-            confirmOkBtn.addEventListener('click', () => {
-                if(pendingConfirmCallback) pendingConfirmCallback();
-                hideConfirmDialog();
-            });
-
-            // --- Hover Preset Image Logic ---
-            document.addEventListener('mouseover', (e) => {
-                const btn = e.target.closest('.preset-btn');
-                if (btn && btn.dataset.image) {
-                    presetPopupImg.src = btn.dataset.image;
-                    const rect = btn.getBoundingClientRect();
-                    
-                    presetPopup.style.left = `${rect.left + (rect.width / 2)}px`;
-                    presetPopup.style.top = `${rect.top - 12}px`; 
-                    
-                    presetPopup.classList.remove('hidden');
-                    void presetPopup.offsetWidth;
-                    presetPopup.classList.remove('opacity-0', 'scale-95');
-                    presetPopup.classList.add('opacity-100', 'scale-100');
-                }
-            });
-
-            document.addEventListener('mouseout', (e) => {
-                const btn = e.target.closest('.preset-btn');
-                if (btn) {
-                    presetPopup.classList.remove('opacity-100', 'scale-100');
-                    presetPopup.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => {
-                        if (presetPopup.classList.contains('opacity-0')) {
-                            presetPopup.classList.add('hidden');
-                        }
-                    }, 200); 
-                }
-            });
-
-            async function readImageFile(file) {
-                let fileToRead = file;
-                if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
-                    try {
-                        const convertedBlob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
-                        fileToRead = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-                        fileToRead.name = file.name.replace(/\.hei[cf]$/i, '.jpg');
-                    } catch (error) {
-                        console.warn("HEIC error:", error);
-                    }
-                }
-
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve({ result: e.target.result, file: fileToRead });
-                    reader.onerror = reject;
-                    reader.readAsDataURL(fileToRead);
-                });
-            }
-
-            dropZone.addEventListener('click', (e) => {
-                if(!imagePreviewContainer.contains(e.target)) fileInput.click();
-            });
-
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+                dropZone.addEventListener(eventName, preventDefaults, false);
             });
+
+            function preventDefaults (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
 
             ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+                dropZone.addEventListener(eventName, highlight, false);
             });
 
             ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+                dropZone.addEventListener(eventName, unhighlight, false);
             });
 
-            dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
-            fileInput.addEventListener('change', function() { handleFiles(this.files); this.value = ''; });
+            function highlight(e) { dropZone.classList.add('dragover'); }
+            function unhighlight(e) { dropZone.classList.remove('dragover'); }
 
-            async function handleFiles(files) {
-                if (files.length === 0) return;
-                
-                const hasHeic = Array.from(files).some(file => file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic');
-                const originalPromptHTML = uploadPrompt.innerHTML;
-                
-                if (hasHeic && uploadPrompt) {
-                    uploadPrompt.innerHTML = `
-                        <div class="loader mx-auto mb-3"></div>
-                        <p class="text-brand-600 font-medium">Mengonversi HEIC...</p>
-                    `;
-                }
+            dropZone.addEventListener('drop', handleDrop, false);
 
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    if (!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.heic')) continue;
+            function handleDrop(e) {
+                let dt = e.dataTransfer;
+                let files = dt.files;
+                if(files.length > 0) processFile(files[0]);
+            }
+        });
 
-                    try {
-                        const { result, file: processedFile } = await readImageFile(file);
-                        const base64Data = result.split(',')[1];
-                        const mimeType = result.match(/[^:]\w+\/[\w-+\d.]+(?=;|,)/)[0];
-                        
-                        let extractedExif = null;
-                        if (mimeType === 'image/jpeg' || processedFile.name.toLowerCase().endsWith('.jpg') || processedFile.name.toLowerCase().endsWith('.jpeg')) {
-                            try {
-                                extractedExif = piexif.load(result);
-                                if (extractedExif && extractedExif.thumbnail !== undefined) delete extractedExif.thumbnail;
-                                if (extractedExif) piexif.dump(extractedExif);
-                            } catch (err) { extractedExif = null; }
-                        }
-                        
-                        await new Promise((resolveImg) => {
-                            const img = new Image();
-                            img.onload = () => {
-                                const ratio = img.width / img.height;
-                                let closestRatioStr = "1:1";
-                                let minDiff = Math.abs(ratio - 1.0);
-                                const ratios = { "4:3": 4/3, "3:4": 3/4, "16:9": 16/9, "9:16": 9/16, "1:1": 1.0, "4:5": 4/5, "3:2": 3/2, "2:3": 2/3 };
-                                for (const [rStr, rVal] of Object.entries(ratios)) {
-                                    if (Math.abs(ratio - rVal) < minDiff) { minDiff = Math.abs(ratio - rVal); closestRatioStr = rStr; }
-                                }
-                                
-                                uploadedImages.push({
-                                    id: Date.now() + Math.random(),
-                                    url: result,
-                                    data: base64Data,
-                                    mimeType: mimeType,
-                                    originalAspectRatio: closestRatioStr,
-                                    exifData: extractedExif,
-                                    originalFilename: processedFile.name
-                                });
-                                renderThumbnailGallery();
-                                checkReadiness();
-                                resolveImg();
-                            };
-                            img.src = result;
-                        });
-                    } catch (error) { console.error(error); }
-                }
-                
-                if (hasHeic && uploadPrompt) uploadPrompt.innerHTML = originalPromptHTML;
+        function switchMode(mode) {
+            currentMode = mode;
+            const genBtn = document.getElementById('mode-generate-btn');
+            const editBtn = document.getElementById('mode-edit-btn');
+            const uploadArea = document.getElementById('image-upload-area');
+            const promptLabel = document.getElementById('prompt-label');
+            const actionBtnText = document.getElementById('actionBtnText');
+            const promptInput = document.getElementById('prompt');
+
+            if (mode === 'generate') {
+                genBtn.className = 'flex-1 py-2 text-sm font-semibold rounded-md bg-gray-800 text-white shadow-sm transition-colors';
+                editBtn.className = 'flex-1 py-2 text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-colors';
+                uploadArea.classList.add('hidden');
+                promptLabel.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-2 text-purple-400"></i>Deskripsi Gambar (Prompt)';
+                actionBtnText.innerText = 'Buat Gambar';
+                promptInput.placeholder = 'Contoh: Seekor kucing astronot sedang minum kopi di planet Mars, gaya fotorealistik...';
+            } else {
+                editBtn.className = 'flex-1 py-2 text-sm font-semibold rounded-md bg-gray-800 text-white shadow-sm transition-colors';
+                genBtn.className = 'flex-1 py-2 text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-colors';
+                uploadArea.classList.remove('hidden');
+                promptLabel.innerHTML = '<i class="fa-solid fa-pen-to-square mr-2 text-purple-400"></i>Instruksi Edit';
+                actionBtnText.innerText = 'Edit Gambar';
+                promptInput.placeholder = 'Contoh: Ubah latar belakang menjadi kota cyberpunk, buat suasananya malam hari...';
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (key) {
+                localStorage.setItem('googleAiApiKey', key);
+                const btn = document.getElementById('saveKeyBtn');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
+                setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+            }
+        }
+
+        function hideError() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.add('hidden');
+            errorDiv.innerText = '';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerText = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) processFile(file);
+        }
+
+        function processFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError("Harap unggah file gambar yang valid.");
+                return;
             }
 
-            function renderThumbnailGallery() {
-                thumbnailGallery.innerHTML = '';
-                queueCount.textContent = uploadedImages.length;
-                
-                if (uploadedImages.length === 0) {
-                    uploadPrompt.classList.remove('hidden');
-                    imagePreviewContainer.classList.add('hidden');
-                    checkReadiness();
-                    return;
-                }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                const base64Data = dataUrl.split(',')[1];
+                const mimeType = file.type;
 
-                uploadPrompt.classList.add('hidden');
-                imagePreviewContainer.classList.remove('hidden');
+                uploadedImageBase64 = base64Data;
+                uploadedImageMimeType = mimeType;
 
-                uploadedImages.forEach((img, index) => {
-                    const thumbHTML = `
-                        <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 group flex-shrink-0 shadow-sm">
-                            <img src="${img.url}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onclick="removeImage(event, ${index})" class="text-white bg-red-500 hover:bg-red-600 rounded-full w-6 h-6 flex items-center justify-center transition-colors">
-                                    <i class="fa-solid fa-times text-[10px]"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    thumbnailGallery.insertAdjacentHTML('beforeend', thumbHTML);
-                });
+                const preview = document.getElementById('image-preview');
+                const prompt = document.getElementById('upload-prompt');
+                const removeBtn = document.getElementById('remove-image-btn');
+
+                preview.src = dataUrl;
+                preview.classList.remove('hidden');
+                prompt.classList.add('hidden');
+                removeBtn.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage(event) {
+            event.stopPropagation();
+            uploadedImageBase64 = null;
+            uploadedImageMimeType = null;
+            
+            document.getElementById('image-input').value = '';
+            document.getElementById('image-preview').classList.add('hidden');
+            document.getElementById('image-preview').src = '';
+            document.getElementById('upload-prompt').classList.remove('hidden');
+            document.getElementById('remove-image-btn').classList.add('hidden');
+        }
+
+        async function processAction() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const prompt = document.getElementById('prompt').value.trim();
+            const actionBtn = document.getElementById('actionBtn');
+            const resultArea = document.getElementById('resultArea');
+            const loadingState = document.getElementById('loadingState');
+            const generatedImage = document.getElementById('generatedImage');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const enhancedPromptArea = document.getElementById('enhancedPromptArea');
+
+            // Validasi input
+            hideError();
+            if (!apiKey) {
+                showError("Mohon masukkan Google AI Studio API Key terlebih dahulu.");
+                document.getElementById('apiKey').focus();
+                return;
+            }
+            if (!prompt) {
+                showError(currentMode === 'generate' ? "Mohon masukkan deskripsi gambar (prompt)." : "Mohon masukkan instruksi edit.");
+                document.getElementById('prompt').focus();
+                return;
+            }
+            if (currentMode === 'edit' && !uploadedImageBase64) {
+                showError("Mohon unggah gambar yang ingin diedit terlebih dahulu.");
+                return;
             }
 
-            window.removeImage = function(e, index) {
-                e.stopPropagation();
-                uploadedImages.splice(index, 1);
-                renderThumbnailGallery();
-                checkReadiness();
-            }
+            // Siapkan UI
+            const originalBtnText = actionBtn.innerHTML;
+            actionBtn.disabled = true;
+            actionBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span>Memproses...</span>';
+            actionBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            resultArea.classList.remove('hidden');
+            resultArea.classList.add('flex');
+            loadingState.classList.remove('hidden');
+            loadingState.classList.add('flex');
+            generatedImage.classList.add('hidden', 'opacity-0');
+            downloadBtn.classList.add('hidden');
+            enhancedPromptArea.classList.add('hidden');
 
-            if (clearUploadsBtn) {
-                clearUploadsBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if(uploadedImages.length === 0) return;
-                    showConfirmDialog("Hapus semua gambar dari antrean?", () => {
-                        uploadedImages = [];
-                        fileInput.value = '';
-                        renderThumbnailGallery();
-                        checkReadiness();
-                    });
-                });
-            }
-
-            // Tab Switching Logic 
-            const tabs = ['umum', 'wajah', 'tiru', 'ig'];
-
-            function switchTab(targetTab) {
-                activeTab = targetTab;
-                tabs.forEach(tab => {
-                    const btn = document.getElementById(`tab-btn-${tab}`);
-                    const content = document.getElementById(`tab-content-${tab}`);
-                    
-                    if (!btn || !content) return;
-
-                    if (tab === targetTab) {
-                        if(tab === 'ig') {
-                            btn.classList.replace('text-gray-500', 'text-pink-500');
-                            btn.classList.replace('dark:text-gray-400', 'dark:text-pink-400');
-                            btn.classList.replace('border-transparent', 'border-pink-500');
-                        } else {
-                            btn.classList.replace('text-gray-500', 'text-brand-600');
-                            btn.classList.replace('dark:text-gray-400', 'dark:text-brand-400');
-                            btn.classList.replace('border-transparent', 'border-brand-500');
-                        }
-                        
-                        btn.classList.add('bg-white', 'dark:bg-slate-800', 'font-bold');
-                        btn.classList.remove('font-medium', 'hover:text-gray-700', 'dark:hover:text-gray-200', 'hover:bg-slate-100', 'dark:hover:bg-slate-800/50', 'text-pink-500', 'hover:text-pink-600', 'dark:text-pink-400', 'hover:bg-pink-50', 'dark:hover:bg-pink-900/20');
-                        content.classList.remove('hidden');
-                        content.classList.add('block');
-                    } else {
-                        btn.classList.replace('text-brand-600', 'text-gray-500');
-                        btn.classList.replace('dark:text-brand-400', 'dark:text-gray-400');
-                        btn.classList.replace('text-pink-500', 'text-gray-500');
-                        btn.classList.replace('dark:text-pink-400', 'dark:text-gray-400');
-                        btn.classList.replace('border-brand-500', 'border-transparent');
-                        btn.classList.replace('border-pink-500', 'border-transparent');
-                        
-                        btn.classList.remove('bg-white', 'dark:bg-slate-800', 'font-bold');
-                        
-                        if(tab === 'ig') {
-                            btn.classList.add('font-medium', 'text-pink-500', 'hover:text-pink-600', 'dark:text-pink-400', 'hover:bg-pink-50', 'dark:hover:bg-pink-900/20');
-                        } else {
-                            btn.classList.add('font-medium', 'hover:text-gray-700', 'dark:hover:text-gray-200', 'hover:bg-slate-100', 'dark:hover:bg-slate-800/50');
-                        }
-
-                        content.classList.remove('block');
-                        content.classList.add('hidden');
-                    }
-                });
-                checkReadiness();
-            }
-
-            document.getElementById('tab-btn-umum').addEventListener('click', () => switchTab('umum'));
-            document.getElementById('tab-btn-wajah').addEventListener('click', () => switchTab('wajah'));
-            document.getElementById('tab-btn-tiru').addEventListener('click', () => switchTab('tiru'));
-            document.getElementById('tab-btn-ig').addEventListener('click', () => switchTab('ig'));
-
-            promptInput.addEventListener('input', () => {
-                checkReadiness();
-                if (promptInput.value.trim() !== '') {
-                    showSavePresetBtn.classList.remove('hidden');
-                    clearPromptBtn.classList.remove('hidden');
-                    clearPromptBtn.classList.add('block');
+            try {
+                if (currentMode === 'generate') {
+                    await handleGenerateMode(apiKey, prompt);
                 } else {
-                    showSavePresetBtn.classList.add('hidden');
-                    clearPromptBtn.classList.add('hidden');
-                    clearPromptBtn.classList.remove('block');
-                    savePresetDialog.classList.add('hidden');
+                    await handleEditMode(apiKey, prompt);
                 }
+            } catch (error) {
+                console.error("Error:", error);
+                showError(error.message);
+                loadingState.classList.add('hidden');
+                loadingState.classList.remove('flex');
+            } finally {
+                // Kembalikan UI
+                actionBtn.disabled = false;
+                actionBtn.innerHTML = originalBtnText;
+                actionBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        async function handleGenerateMode(apiKey, prompt) {
+            const loadingText = document.getElementById('loadingText');
+            const enhancedPromptArea = document.getElementById('enhancedPromptArea');
+            const enhancedPromptText = document.getElementById('enhancedPromptText');
+            const generatedImage = document.getElementById('generatedImage');
+            const loadingState = document.getElementById('loadingState');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            const activeTextModel = "gemini-3.6-flash";
+            loadingText.innerText = `Menyempurnakan prompt dengan ${activeTextModel}...`;
+            
+            // TAHAP 1: Enhance prompt using Gemini
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeTextModel}:generateContent?key=${apiKey}`;
+            const systemInstruction = "You are a professional AI image prompt engineer. Translate the user's input into English and enhance it to be a highly detailed, descriptive image generation prompt. Add relevant keywords for lighting, style, and atmosphere. ONLY output the final prompt text, do not add any conversational filler, intro, or quotes.";
+            
+            const geminiResponse = await fetch(geminiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    systemInstruction: { parts: [{ text: systemInstruction }] }
+                })
             });
 
-            clearPromptBtn.addEventListener('click', () => {
-                promptInput.value = '';
-                checkReadiness();
-                showSavePresetBtn.classList.add('hidden');
-                clearPromptBtn.classList.add('hidden');
-                clearPromptBtn.classList.remove('block');
-                savePresetDialog.classList.add('hidden');
-            });
+            const geminiData = await geminiResponse.json();
 
-            // Ref Uploads 
-            function setupRefUpload(dropZoneId, inputId, previewId, previewContainerId, promptId, removeBtnId, activeRefVarName, isUmum = false) {
-                const zone = document.getElementById(dropZoneId);
-                const input = document.getElementById(inputId);
-                const removeBtn = document.getElementById(removeBtnId);
-                
-                zone.addEventListener('click', e => { if(e.target !== removeBtn && !removeBtn.contains(e.target)) input.click(); });
-                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }, false));
-                zone.addEventListener('drop', e => { if(e.dataTransfer.files.length) handleRefFile(e.dataTransfer.files[0]); });
-                input.addEventListener('change', function() { if(this.files[0]) handleRefFile(this.files[0]); this.value = ''; });
+            if (!geminiResponse.ok) {
+                throw new Error(geminiData.error?.message || "Gagal menghubungi Gemini API (Tahap 1).");
+            }
 
-                async function handleRefFile(file) {
-                    if (!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.heic')) return;
-                    try {
-                        const { result } = await readImageFile(file);
-                        const base64 = result.split(',')[1];
-                        const mime = result.match(/[^:]\w+\/[\w-+\d.]+(?=;|,)/)[0];
-                        
-                        if(activeRefVarName === 'umum') activeRefImage = { data: base64, mimeType: mime, url: result };
-                        else if(activeRefVarName === 'wajah') activeFaceRefImage = { data: base64, mimeType: mime, url: result };
-                        else if(activeRefVarName === 'tiru') activeTiruRefImage = { data: base64, mimeType: mime, url: result };
+            const perfectPrompt = geminiData.candidates[0].content.parts[0].text.trim();
+            
+            enhancedPromptText.innerText = perfectPrompt;
+            enhancedPromptArea.classList.remove('hidden');
 
-                        document.getElementById(previewId).src = result;
-                        document.getElementById(promptId).classList.add('hidden');
-                        document.getElementById(previewContainerId).classList.remove('hidden');
-                        zone.classList.remove('min-h-[140px]', 'min-h-[90px]');
-                        zone.classList.add('py-4');
-                        
-                        if (isUmum) {
-                            zone.style.pointerEvents = 'none';
-                            document.getElementById('ref-extracting-text').innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menganalisis...';
-                            try {
-                                const stylePrompt = await extractStyleFromImage(base64, mime);
-                                if (stylePrompt) {
-                                    promptInput.value = promptInput.value.trim() ? promptInput.value.trim() + ", " + stylePrompt : stylePrompt;
-                                    promptInput.dispatchEvent(new Event('input')); 
-                                }
-                            } catch(e) {} finally {
-                                document.getElementById('ref-extracting-text').innerHTML = 'Dikirim ke AI';
-                                zone.style.pointerEvents = 'auto';
+            // TAHAP 2: Generate Image using Pollinations (Free & Fast)
+            loadingText.innerText = "Melukis gambar Anda...";
+            
+            const seed = Math.floor(Math.random() * 1000000);
+            const encodedPrompt = encodeURIComponent(perfectPrompt);
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${seed}&nologo=true`;
+
+            const imageResponse = await fetch(imageUrl);
+
+            if (!imageResponse.ok) {
+                throw new Error("Gagal mengambil gambar. Coba lagi nanti.");
+            }
+
+            const imageBlob = await imageResponse.blob();
+            const objectURL = URL.createObjectURL(imageBlob);
+
+            showImage(objectURL);
+        }
+
+        async function handleEditMode(apiKey, prompt) {
+            const loadingText = document.getElementById('loadingText');
+            
+            loadingText.innerText = `Menerapkan instruksi edit dengan Gemini Flash Image...`;
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [
+                        { text: "Edit this image based on the following instruction: " + prompt + " Maintain high quality." },
+                        {
+                            inlineData: {
+                                mimeType: uploadedImageMimeType,
+                                data: uploadedImageBase64
                             }
                         }
-                        checkReadiness();
-                    } catch(e) { console.error(e); }
+                    ]
+                }],
+                generationConfig: {
+                    responseModalities: ['IMAGE']
                 }
-
-                removeBtn.addEventListener('click', e => {
-                    e.stopPropagation();
-                    if(activeRefVarName === 'umum') activeRefImage = null;
-                    else if(activeRefVarName === 'wajah') activeFaceRefImage = null;
-                    else if(activeRefVarName === 'tiru') activeTiruRefImage = null;
-
-                    document.getElementById(previewId).src = "";
-                    document.getElementById(previewContainerId).classList.add('hidden');
-                    document.getElementById(promptId).classList.remove('hidden');
-                    zone.classList.add(isUmum ? 'min-h-[90px]' : 'min-h-[140px]');
-                    zone.classList.remove('py-4');
-                    checkReadiness();
-                });
-            }
-
-            setupRefUpload('umum-drop-zone', 'ref-image-input', 'ref-image-preview', 'ref-image-preview-container', 'umum-upload-prompt', 'remove-ref-image-btn', 'umum', true);
-            setupRefUpload('wajah-drop-zone', 'wajah-ref-input', 'wajah-preview', 'wajah-preview-container', 'wajah-upload-prompt', 'remove-wajah-btn', 'wajah');
-            setupRefUpload('tiru-drop-zone', 'tiru-ref-input', 'tiru-preview', 'tiru-preview-container', 'tiru-upload-prompt', 'remove-tiru-btn', 'tiru');
-
-            async function extractStyleFromImage(base64Data, mimeType) {
-                const apiKey = getApiKey();
-                if (!apiKey) return null;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-                const payload = { contents: [{ role: "user", parts: [ { text: "Analyze style, lighting, color grading. Write detailed concise image generation prompt focusing ONLY on these. No subjects. English." }, { inlineData: { mimeType, data: base64Data } } ] }] };
-                const res = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                const json = await res.json();
-                return json.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-            }
-
-            function renderCustomPresets() {
-                customPresetContainer.innerHTML = '';
-                customPresets.forEach((preset, index) => {
-                    const presetEl = document.createElement('div');
-                    presetEl.className = 'group relative inline-flex items-center bg-brand-50 dark:bg-slate-800 rounded-lg overflow-hidden animate-fade-in-up border border-slate-200 dark:border-slate-700 shadow-sm';
-                    
-                    const btnEl = document.createElement('button');
-                    btnEl.className = 'px-3 py-1.5 text-[10px] font-bold text-brand-700 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-slate-700 transition-colors max-w-[120px] truncate';
-                    btnEl.textContent = preset.name;
-                    btnEl.title = preset.prompt;
-                    btnEl.onclick = () => { promptInput.value = preset.prompt; checkReadiness(); showSavePresetBtn.classList.remove('hidden'); };
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'px-2 py-1.5 bg-brand-100 dark:bg-slate-700 text-brand-500 hover:bg-red-500 hover:text-white transition-colors text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center';
-                    deleteBtn.innerHTML = '<i class="fa-solid fa-times"></i>';
-                    deleteBtn.onclick = (e) => { e.stopPropagation(); customPresets.splice(index, 1); localStorage.setItem('rog_custom_presets', JSON.stringify(customPresets)); renderCustomPresets(); };
-
-                    presetEl.appendChild(btnEl);
-                    presetEl.appendChild(deleteBtn);
-                    customPresetContainer.appendChild(presetEl);
-                });
-            }
-
-            showSavePresetBtn.addEventListener('click', () => { savePresetDialog.classList.remove('hidden'); presetNameInput.focus(); showSavePresetBtn.classList.add('hidden'); });
-            cancelSavePresetBtn.addEventListener('click', () => { savePresetDialog.classList.add('hidden'); presetNameInput.value = ''; showSavePresetBtn.classList.remove('hidden'); });
-            confirmSavePresetBtn.addEventListener('click', () => {
-                const name = presetNameInput.value.trim(); const prompt = promptInput.value.trim();
-                if (!name) return;
-                if (prompt) {
-                    customPresets.push({ name, prompt }); localStorage.setItem('rog_custom_presets', JSON.stringify(customPresets)); renderCustomPresets();
-                    savePresetDialog.classList.add('hidden'); presetNameInput.value = ''; showSavePresetBtn.classList.remove('hidden');
-                }
-            });
-            renderCustomPresets();
-
-            function checkReadiness() {
-                let isReady = false;
-                if (activeTab === 'umum') isReady = (uploadedImages.length > 0 && promptInput.value.trim() !== '');
-                else if (activeTab === 'wajah') isReady = (uploadedImages.length > 0 && activeFaceRefImage !== null);
-                else if (activeTab === 'tiru') isReady = (uploadedImages.length > 0 && activeTiruRefImage !== null);
-                else if (activeTab === 'ig') isReady = (uploadedImages.length > 0);
-
-                if (isReady) {
-                    generateBtn.disabled = false;
-                    generateBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'from-slate-400', 'to-slate-500');
-                    generateBtn.classList.add('from-brand-500', 'to-brand-600');
-                } else {
-                    generateBtn.disabled = true;
-                    generateBtn.classList.add('opacity-50', 'cursor-not-allowed', 'from-slate-400', 'to-slate-500');
-                    generateBtn.classList.remove('from-brand-500', 'to-brand-600');
-                }
-            }
-
-            function getPresetNameFromPrompt(promptToFind) {
-                const allBtns = document.querySelectorAll('.preset-btn');
-                for (let btn of allBtns) if (btn.dataset.prompt && btn.dataset.prompt.trim() === promptToFind.trim()) return btn.textContent.trim();
-                for (let cp of customPresets) if (cp.prompt.trim() === promptToFind.trim()) return cp.name;
-                return activeTab === 'wajah' ? "Face Swap" : "Custom AI Edit"; 
-            }
-
-            // CORE AI GENERATION LOGIC
-            generateBtn.addEventListener('click', () => {
-                if (uploadedImages.length === 0) return;
-                
-                let promptToUse = "";
-                if (activeTab === 'umum') {
-                    promptToUse = promptInput.value.trim();
-                    if (promptToUse === '') return;
-                } else if (activeTab === 'wajah') {
-                    if (!activeFaceRefImage) return;
-                    const baseSwapPrompt = "Perfectly replace the face of the main person in the original image with the face of the person in the reference image. Seamlessly blend the skin tone, lighting, and facial angle. STRICTLY keep the original person's body, clothing, hair style, pose, and the entire background exactly the same.";
-                    const additionalPrompt = wajahPromptInput.value.trim();
-                    promptToUse = additionalPrompt ? `${additionalPrompt}, ${baseSwapPrompt}` : baseSwapPrompt;
-                } else if (activeTab === 'tiru') {
-                    if (!activeTiruRefImage) return;
-                    const isColorOnly = tiruModeToggle.checked;
-                    let baseTiruPrompt = isColorOnly ? 
-                        "Apply the exact color grading, color palette, tone, and lighting style of the reference image to the original image. STRICTLY keep all original subjects, objects, people, clothing, background, and overall composition completely unchanged. Only alter the colors and lighting atmosphere." : 
-                        "Completely transform the original image to match the visual style, background, clothing, lighting, and composition of the reference image. STRICTLY keep the original person's face, facial features, and identity exactly the same.";
-                    const additionalPrompt = tiruPromptInput.value.trim();
-                    promptToUse = additionalPrompt ? `${additionalPrompt}, ${baseTiruPrompt}` : baseTiruPrompt;
-                } else if (activeTab === 'ig') {
-                    const layoutType = document.querySelector('input[name="ig-layout-type"]:checked').value;
-                    const numPhotosStr = igPhotosPerPost.value;
-                    const numPhotos = numPhotosStr === 'auto' ? uploadedImages.length : parseInt(numPhotosStr);
-                    
-                    let layoutInstruction = "";
-                    if (layoutType === 'polaroid') layoutInstruction = `Create an aesthetic Instagram layout. Arrange ${numPhotos} photos from the uploaded images as scattered polaroid pictures overlapping each other on a beautiful background. Add soft shadows for depth.`;
-                    else if (layoutType === 'filmstrip') layoutInstruction = `Create a cinematic Instagram layout. Arrange ${numPhotos} photos from the uploaded images vertically or horizontally inside a vintage camera film strip frame. Add film grain and light leaks.`;
-                    else if (layoutType === 'clean-grid') layoutInstruction = `Create a clean minimalist Instagram layout. Arrange ${numPhotos} photos from the uploaded images in a neat grid with thick white borders. High-end magazine editorial style.`;
-                    else if (layoutType === 'scrapbook') layoutInstruction = `Create an aesthetic scrapbook journal Instagram layout. Place ${numPhotos} photos from the uploaded images on a textured paper background, decorated with torn paper edges, washi tape, and dried flowers.`;
-                    else if (layoutType === 'random-surprise') {
-                        const randomStyles = ["High-fashion editorial magazine", "Trendy Y2K aesthetic with retro elements", "Minimalist moodboard layout", "Dynamic 3D pop-out effect collage", "Vintage 90s digital interface window borders", "Elegant soft-focus floral collage", "Edgy street-style collage with torn edges"];
-                        layoutInstruction = `SURPRISE ME! Create a highly creative and unique Instagram layout collage using ${numPhotos} photos from the uploaded images. Use this specific style direction: ${randomStyles[Math.floor(Math.random() * randomStyles.length)]}.`;
-                    }
-                    const themePrompt = igPromptInput.value.trim();
-                    promptToUse = themePrompt ? `${layoutInstruction} Style/Theme: ${themePrompt}. Ensure the faces remain recognizable.` : `${layoutInstruction} Ensure the faces remain recognizable.`;
-                }
-
-                let taskImages = [...uploadedImages];
-                if(activeTab === 'ig' && taskImages.length > 0) taskImages = [uploadedImages[0]]; 
-
-                const promptText = promptToUse;
-                let aspectRatio = aspectRatioSelect.value;
-                if (activeTab === 'ig' && aspectRatio === 'original') { aspectRatio = '4:5'; aspectRatioSelect.value = '4:5'; } // Default IG
-                
-                let variationsPerImage = parseInt(variationsCountSelect.value) || 1;
-                if (variationsPerImage > 20) { variationsPerImage = 20; variationsCountSelect.value = 20; }
-
-                const taskId = Date.now(); 
-                currentAbortController = new AbortController();
-                
-                cancelProcessBtn.classList.remove('hidden');
-                cancelProcessBtn.classList.add('flex');
-                activeTasksCount++;
-                updateStatusBadge();
-                
-                emptyResultsState.classList.add('hidden');
-                resultsGrid.classList.remove('hidden');
-
-                // Auto scroll to Workspace on Mobile
-                setTimeout(() => {
-                    const workspaceArea = document.getElementById('main-workspace-area');
-                    if (workspaceArea && window.innerWidth < 768) {
-                        workspaceArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }, 100);
-
-                const processingPromises = [];
-
-                for (let imgIndex = 0; imgIndex < taskImages.length; imgIndex++) {
-                    const currentSourceImage = taskImages[imgIndex];
-                    for (let i = variationsPerImage; i >= 1; i--) {
-                        const placeholderHtml = `
-                            <div id="task-${taskId}-${imgIndex}-${i}" class="bg-white dark:bg-slate-800/80 aspect-square rounded-2xl border border-slate-200 dark:border-slate-700/50 flex flex-col items-center justify-center animate-pulse shadow-sm relative overflow-hidden">
-                                <div class="loader !w-10 !h-10 !border-4 !border-t-4 mb-4"></div>
-                                <span class="text-xs font-bold text-slate-500">Menganalisis Variasi ${i}...</span>
-                                <div class="absolute bottom-0 left-0 h-1 bg-brand-500 w-full animate-[pulse_1.5s_ease-in-out_infinite]"></div>
-                            </div>
-                        `;
-                        resultsGrid.insertAdjacentHTML('afterbegin', placeholderHtml);
-                        
-                        const refImageToUse = activeTab === 'umum' ? activeRefImage : (activeTab === 'wajah' ? activeFaceRefImage : activeTiruRefImage);
-                        
-                        const promise = (async (currentI, currentImgIndex) => {
-                            if (currentAbortController.signal.aborted) {
-                                const p = document.getElementById(`task-${taskId}-${currentImgIndex}-${currentI}`);
-                                if (p) p.outerHTML = createErrorCardHtml("Dibatalkan");
-                                return;
-                            }
-                            try {
-                                let imageUrl = await generateSingleImage(promptText, aspectRatio, currentI, currentSourceImage, activeTab === 'ig' ? null : refImageToUse);
-                                const placeholder = document.getElementById(`task-${taskId}-${currentImgIndex}-${currentI}`);
-                                
-                                if (imageUrl) {
-                                    let presetNameUsed = getPresetNameFromPrompt(promptText);
-                                    if(activeTab === 'ig') presetNameUsed = "IG Layout " + document.querySelector('input[name="ig-layout-type"]:checked').value;
-
-                                    const generatedObj = { url: imageUrl, exifData: currentSourceImage.exifData, prompt: promptText, presetName: presetNameUsed, originalFilename: currentSourceImage.originalFilename, variationIndex: currentI };
-                                    generatedImages.push(generatedObj);
-                                    
-                                    if (placeholder) placeholder.outerHTML = createResultCardHtml(generatedObj, generatedImages.length, generatedImages.length - 1);
-                                } else throw new Error("Gagal menerima data");
-                            } catch (error) {
-                                const p = document.getElementById(`task-${taskId}-${currentImgIndex}-${currentI}`);
-                                if (p) p.outerHTML = createErrorCardHtml(error.message);
-                            }
-                        })(i, imgIndex);
-
-                        processingPromises.push(promise);
-                    }
-                }
-
-                (async () => {
-                    await Promise.all(processingPromises);
-                    activeTasksCount--;
-                    updateStatusBadge();
-                    cancelProcessBtn.classList.add('hidden');
-                    cancelProcessBtn.classList.remove('flex');
-                    if(generatedImages.length > 0) {
-                        downloadAllBtn.classList.remove('hidden');
-                        if(clearResultsBtn) { clearResultsBtn.classList.remove('hidden'); clearResultsBtn.classList.add('flex'); }
-                    }
-                })();
-            });
-
-            async function generateSingleImage(promptText, aspectRatio, index, imageBase64Data, refImageData) {
-                const apiKey = getApiKey();
-                if (!apiKey) throw new Error("API Key tidak dimasukkan");
-
-                const variations = [" ", " subtle differences in detail.", " slightly different lighting.", " alternative composition.", " vibrant color pop.", " cinematic focus.", " enhanced contrast."];
-                const varStr = variations[(index - 1) % variations.length];
-                const qualityPrompt = " Masterpiece, extremely high-resolution, 8k, ultra-detailed, incredibly sharp focus, crisp edges. Strictly maintain the original image quality, structure, and clarity. Do not compress, blur, or lower the quality. ";
-                
-                let aspectPrompt = "";
-                if (aspectRatio === 'original' && imageBase64Data && imageBase64Data.originalAspectRatio) aspectPrompt = ` Make sure the output aspect ratio is ${imageBase64Data.originalAspectRatio}. `;
-                else aspectPrompt = ` Make sure the output aspect ratio is ${aspectRatio}. `;
-
-                const parts = [
-                    { inlineData: { mimeType: imageBase64Data.mimeType, data: imageBase64Data.data } },
-                    { text: promptText + varStr + qualityPrompt + aspectPrompt }
-                ];
-
-                if (refImageData) {
-                    let instruction = " Also use the following image strictly as a visual style and color reference. Replicate the atmosphere and texture of this reference, but do not copy the subjects:";
-                    if (activeTab === 'wajah') instruction = " Use the following image STRICTLY as the FACE REFERENCE. Extract the facial features, identity, and expression from this image and apply it to the main person in the original image. Do not change the original clothing or background:";
-                    else if (activeTab === 'tiru') instruction = document.getElementById('tiru-mode-toggle').checked ? " Use the following image STRICTLY as a COLOR AND LIGHTING REFERENCE. Replicate the color grading, tone, and lighting mood perfectly, but keep original subjects unchanged:" : " Use the following image as the FULL STYLE REFERENCE. Replicate clothing, background, lighting completely, but STRICTLY keep the original person's face unchanged:";
-                        
-                    parts.push({ text: instruction }, { inlineData: { mimeType: refImageData.mimeType, data: refImageData.data } });
-                }
-
-                const payload = { contents: [{ role: "user", parts: parts }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } };
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-
-                let retryCount = 0;
-                while (retryCount < 5) {
-                    try {
-                        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: currentAbortController.signal });
-                        if (!response.ok) {
-                            if(response.status === 400 || response.status === 403 || response.status === 404) {
-                                throw new Error(`Error API (${response.status}). Pastikan API Key valid.`);
-                            }
-                            throw new Error(`HTTP Error ${response.status}`);
-                        }
-                        const result = await response.json();
-                        if (result.error) throw new Error(result.error.message);
-                        
-                        const candidate = result?.candidates?.[0];
-                        if (candidate?.finishReason && candidate.finishReason !== 'STOP') throw new Error(`Safety Filter: ${candidate.finishReason}`);
-                        const part = candidate?.content?.parts?.find(p => p.inlineData);
-                        if (part && part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                        throw new Error("Format respons tidak valid");
-                    } catch (error) {
-                        if (error.name === 'AbortError') throw new Error("Dibatalkan");
-                        if (error.message.includes('API Key')) throw error; // Stop retry on fatal errors
-                        retryCount++;
-                        if (retryCount >= 5) throw error;
-                        await new Promise(r => setTimeout(r, Math.pow(2, retryCount) * 1000 + Math.random() * 1000));
-                    }
-                }
-                return null;
-            }
-
-            function updateStatusBadge() {
-                const statusText = document.getElementById('status-text');
-                if (activeTasksCount > 0) {
-                    statusBadge.classList.remove('hidden');
-                    statusText.textContent = `Memproses...`;
-                } else {
-                    statusBadge.classList.add('hidden');
-                }
-            }
-
-            function createResultCardHtml(genObj, displayNum, arrayIndex) {
-                return `
-                    <div class="result-image-container bg-white dark:bg-slate-800 aspect-square group border border-slate-200 dark:border-slate-700/50 rounded-2xl overflow-hidden relative shadow-sm hover:shadow-xl transition-all duration-300">
-                        <img src="${genObj.url}" alt="Generated Image" class="w-full h-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-105" onclick="openModalByIndex(${arrayIndex})">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
-                            <div class="w-full mb-3 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 pointer-events-none">
-                                <span class="text-white font-extrabold text-sm drop-shadow-md">Hasil #${displayNum}</span>
-                                <p class="text-[10px] font-bold text-brand-400 mt-1 drop-shadow-md truncate"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>${genObj.presetName || "AI Edit"}</p>
-                            </div>
-                            <div class="flex space-x-2 w-full justify-end translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
-                                <button onclick="usePromptByIndex(${arrayIndex})" class="bg-indigo-500 hover:bg-indigo-600 text-white rounded-full w-9 h-9 flex items-center justify-center transition shadow-lg" title="Gunakan Prompt Ini">
-                                    <i class="fa-solid fa-pen-to-square text-xs"></i>
-                                </button>
-                                <button onclick="openModalByIndex(${arrayIndex})" class="bg-white/20 hover:bg-white/40 backdrop-blur-md text-white rounded-full w-9 h-9 flex items-center justify-center transition" title="Perbesar / Revisi">
-                                    <i class="fa-solid fa-expand text-xs"></i>
-                                </button>
-                                <button onclick="openQualityModalByIndex(${arrayIndex})" class="bg-brand-500 hover:bg-brand-600 text-white rounded-full w-9 h-9 flex items-center justify-center transition shadow-lg" title="Download">
-                                    <i class="fa-solid fa-download text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function createErrorCardHtml(errorMessage) {
-                let displayError = "Gagal memuat";
-                if (errorMessage && errorMessage.includes('Safety')) displayError = "Diblokir Filter Keamanan";
-                if (errorMessage && errorMessage.includes('Dibatalkan')) displayError = "Dibatalkan";
-                if (errorMessage && errorMessage.includes('API Key')) displayError = "Error API Key";
-                
-                return `
-                    <div class="bg-red-50 dark:bg-red-900/20 flex flex-col items-center justify-center aspect-square rounded-2xl border border-red-100 dark:border-red-800/50 p-4 text-center">
-                        <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-3 text-red-500">
-                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                        </div>
-                        <span class="text-red-800 dark:text-red-300 text-xs font-bold">${displayError}</span>
-                        <span class="text-red-500/80 dark:text-red-400/80 text-[9px] mt-2 line-clamp-2">${errorMessage}</span>
-                    </div>
-                `;
-            }
-
-            // Global Functions for inline HTML onclicks
-            window.openModalByIndex = function(index) {
-                const obj = generatedImages[index];
-                if (!obj) return;
-                modal.style.display = "block";
-                modalImg.src = obj.url;
-                currentModalImageUrl = obj.url;
-                if (modalPromptInput) modalPromptInput.value = obj.prompt;
-                document.body.style.overflow = 'hidden'; 
-            }
-
-            window.usePromptByIndex = function(index) {
-                const obj = generatedImages[index];
-                if (!obj) return;
-                if (activeTab !== 'umum') document.getElementById('tab-btn-umum').click();
-                promptInput.value = obj.prompt;
-                promptInput.dispatchEvent(new Event('input'));
             };
 
-            window.openQualityModalByIndex = function(index) {
-                if (!generatedImages[index]) return;
-                openQualityModal('single', generatedImages[index].url);
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error?.message || "Terjadi kesalahan saat mengedit gambar.");
             }
+
+            const candidate = data.candidates?.[0];
+            if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
+                throw new Error(`Diblokir oleh filter keamanan (Reason: ${candidate.finishReason})`);
+            }
+
+            const part = candidate?.content?.parts?.find(p => p.inlineData);
             
-            if (clearResultsBtn) {
-                clearResultsBtn.addEventListener('click', () => {
-                    showConfirmDialog("Hapus semua hasil dari kanvas?", () => {
-                        generatedImages = [];
-                        resultsGrid.innerHTML = '';
-                        resultsGrid.classList.add('hidden');
-                        emptyResultsState.classList.remove('hidden');
-                        downloadAllBtn.classList.add('hidden');
-                        clearResultsBtn.classList.add('hidden');
-                        clearResultsBtn.classList.remove('flex');
-                    });
-                });
+            if (part && part.inlineData) {
+                const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                showImage(imageUrl);
+            } else {
+                throw new Error("API tidak mengembalikan data gambar yang valid.");
             }
+        }
 
-            cancelProcessBtn.addEventListener('click', () => {
-                if (activeTasksCount > 0) {
-                    currentAbortController.abort();
-                    cancelProcessBtn.classList.add('hidden');
-                    cancelProcessBtn.classList.remove('flex');
-                }
-            });
+        function showImage(url) {
+            const generatedImage = document.getElementById('generatedImage');
+            const loadingState = document.getElementById('loadingState');
+            const downloadBtn = document.getElementById('downloadBtn');
 
-            closeModalBtn.onclick = function() { modal.style.display = "none"; document.body.style.overflow = 'auto'; }
-            closeModalMobileBtn.onclick = function() { modal.style.display = "none"; document.body.style.overflow = 'auto'; }
-            modal.onclick = function(e) { if (e.target === modal || e.target.id === 'modal-backdrop') { modal.style.display = "none"; document.body.style.overflow = 'auto'; } }
-
-            modalDownloadBtn.onclick = function() {
-                if (currentModalImageUrl) { modal.style.display = "none"; openQualityModal('single', currentModalImageUrl); }
-            }
+            generatedImage.src = url;
             
-            // Revisi AI (Img2Img) Logic
-            if (modalReeditBtn) {
-                modalReeditBtn.addEventListener('click', () => {
-                    const promptText = modalPromptInput.value.trim();
-                    const variationsCount = parseInt(modalVariationsCount.value) || 1;
-                    if (!promptText || !currentModalImageUrl) return;
+            generatedImage.onload = () => {
+                loadingState.classList.add('hidden');
+                loadingState.classList.remove('flex');
+                generatedImage.classList.remove('hidden');
+                setTimeout(() => { generatedImage.classList.remove('opacity-0'); }, 50);
+                downloadBtn.classList.remove('hidden');
+            };
+        }
 
-                    modal.style.display = "none";
-                    document.body.style.overflow = 'auto';
+        function downloadImage() {
+            const imageSrc = document.getElementById('generatedImage').src;
+            if (!imageSrc) return;
 
-                    const base64Data = currentModalImageUrl.split(',')[1];
-                    const mimeType = currentModalImageUrl.match(/[^:]\w+\/[\w-+\d.]+(?=;|,)/)[0];
-                    const imageBase64Data = { data: base64Data, mimeType: mimeType };
-
-                    const sourceImgObj = generatedImages.find(img => img.url === currentModalImageUrl);
-                    let sourceOriginalFilename = "Revisi_AI.jpg";
-                    if (sourceImgObj && sourceImgObj.originalFilename) sourceOriginalFilename = sourceImgObj.originalFilename.replace(/\.[^/.]+$/, "") + "_revisi.jpg";
-
-                    const refImageToUse = activeTab === 'umum' ? activeRefImage : (activeTab === 'wajah' ? activeFaceRefImage : activeTiruRefImage);
-                    const taskId = Date.now();
-                    currentAbortController = new AbortController();
-                    
-                    cancelProcessBtn.classList.remove('hidden');
-                    cancelProcessBtn.classList.add('flex');
-                    activeTasksCount++;
-                    updateStatusBadge();
-                    emptyResultsState.classList.add('hidden');
-                    resultsGrid.classList.remove('hidden');
-
-                    // Auto scroll to Workspace on Mobile
-                    setTimeout(() => {
-                        const workspaceArea = document.getElementById('main-workspace-area');
-                        if (workspaceArea && window.innerWidth < 768) {
-                            workspaceArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }, 100);
-                    
-                    const reeditPromises = [];
-                    for (let i = 1; i <= variationsCount; i++) {
-                        const placeholderHtml = `
-                            <div id="task-${taskId}-reedit-${i}" class="bg-white dark:bg-slate-800/80 aspect-square rounded-2xl border border-indigo-200 dark:border-indigo-700/50 flex flex-col items-center justify-center animate-pulse shadow-sm relative overflow-hidden">
-                                <div class="loader !border-indigo-100 !border-t-indigo-500 !w-10 !h-10 !border-4 !border-t-4 mb-4"></div>
-                                <span class="text-xs font-bold text-indigo-500">Revisi ${i}...</span>
-                                <div class="absolute bottom-0 left-0 h-1 bg-indigo-500 w-full animate-[pulse_1.5s_ease-in-out_infinite]"></div>
-                            </div>
-                        `;
-                        resultsGrid.insertAdjacentHTML('afterbegin', placeholderHtml);
-                        
-                        const promise = (async (currentI) => {
-                            if (currentAbortController.signal.aborted) {
-                                const p = document.getElementById(`task-${taskId}-reedit-${currentI}`);
-                                if (p) p.outerHTML = createErrorCardHtml("Dibatalkan");
-                                return;
-                            }
-                            try {
-                                let imageUrl = await generateSingleImage(promptText, 'original', currentI, imageBase64Data, refImageToUse);
-                                const placeholder = document.getElementById(`task-${taskId}-reedit-${currentI}`);
-                                if (imageUrl) {
-                                    const genObj = { url: imageUrl, exifData: null, prompt: promptText, presetName: "Revisi AI", originalFilename: sourceOriginalFilename, variationIndex: currentI };
-                                    generatedImages.push(genObj);
-                                    if (placeholder) placeholder.outerHTML = createResultCardHtml(genObj, generatedImages.length, generatedImages.length - 1);
-                                } else throw new Error("Gagal menerima data");
-                            } catch (error) {
-                                const p = document.getElementById(`task-${taskId}-reedit-${currentI}`);
-                                if (p) p.outerHTML = createErrorCardHtml(error.message);
-                            }
-                        })(i);
-                        reeditPromises.push(promise);
-                    }
-
-                    (async () => {
-                        await Promise.all(reeditPromises);
-                        activeTasksCount--;
-                        updateStatusBadge();
-                        cancelProcessBtn.classList.add('hidden');
-                        cancelProcessBtn.classList.remove('flex');
-                        if(generatedImages.length > 0) {
-                            downloadAllBtn.classList.remove('hidden');
-                            if(clearResultsBtn) { clearResultsBtn.classList.remove('hidden'); clearResultsBtn.classList.add('flex'); }
-                        }
-                    })();
-                });
-            }
-
-            // Quality Modal Logic
-            window.openQualityModal = function(type, url = null) {
-                downloadContext = { type, url };
-                qualityOptions.classList.remove('hidden');
-                downloadActionArea.classList.remove('hidden');
-                upscaleProcessing.classList.add('hidden');
-                confirmDownloadBtn.disabled = false;
-                qualityModal.style.display = "flex";
-                document.body.style.overflow = 'hidden';
-            }
-
-            closeQualityModalBtn.onclick = function() { qualityModal.style.display = "none"; document.body.style.overflow = 'auto'; }
-            downloadAllBtn.onclick = function() { openQualityModal('all'); }
-
-            qualityCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    qualityCards.forEach(c => {
-                        c.classList.remove('selected');
-                        c.querySelector('.check-icon').classList.remove('text-brand-500');
-                        c.querySelector('.check-icon').classList.add('text-slate-300', 'dark:text-slate-600', 'hidden');
-                    });
-                    card.classList.add('selected');
-                    card.querySelector('.check-icon').classList.remove('text-slate-300', 'dark:text-slate-600', 'hidden');
-                    card.querySelector('.check-icon').classList.add('text-brand-500');
-                    selectedQuality = card.dataset.quality;
-                });
-            });
-
-            confirmDownloadBtn.addEventListener('click', async () => {
-                qualityOptions.classList.add('hidden');
-                downloadActionArea.classList.add('hidden');
-                upscaleProcessing.classList.remove('hidden');
-                await new Promise(resolve => setTimeout(resolve, 50));
-
-                try {
-                    if (downloadContext.type === 'single') {
-                        upscaleText.textContent = `Memproses ketajaman & resolusi ${selectedQuality}...`;
-                        await new Promise(resolve => setTimeout(resolve, 50));
-                        
-                        const targetImgObj = generatedImages.find(img => img.url === downloadContext.url);
-                        let baseFilename = "ROG_AI";
-                        let varIndex = 1;
-                        if (targetImgObj) {
-                            if (targetImgObj.originalFilename) baseFilename = targetImgObj.originalFilename.replace(/\.[^/.]+$/, "");
-                            varIndex = targetImgObj.variationIndex || (generatedImages.indexOf(targetImgObj) + 1);
-                        }
-                        const filename = `${baseFilename}_var${varIndex}_${selectedQuality}.jpg`;
-                        await processAndDownload(targetImgObj, selectedQuality, filename);
-                    } 
-                    else if (downloadContext.type === 'all') {
-                        for (let i = 0; i < generatedImages.length; i++) {
-                            upscaleText.textContent = `Memproses ketajaman batch ${i+1}/${generatedImages.length} (${selectedQuality})...`;
-                            await new Promise(resolve => setTimeout(resolve, 50));
-                            
-                            const targetImgObj = generatedImages[i];
-                            let baseFilename = `ROG_AI_Batch_${i+1}`;
-                            let varIndex = i + 1;
-                            if (targetImgObj) {
-                                if (targetImgObj.originalFilename) baseFilename = targetImgObj.originalFilename.replace(/\.[^/.]+$/, "");
-                                varIndex = targetImgObj.variationIndex || (i + 1);
-                            }
-                            const filename = `${baseFilename}_var${varIndex}_id${i+1}_${selectedQuality}.jpg`;
-                            await processAndDownload(targetImgObj, selectedQuality, filename);
-                            await new Promise(r => setTimeout(r, 500)); 
-                        }
-                    }
-                } catch (error) { alert("Terjadi kesalahan saat memproses resolusi gambar."); }
-
-                qualityModal.style.display = "none";
-                document.body.style.overflow = 'auto';
-            });
-
-            // Upscale logic
-            function dataURItoBlob(dataURI) {
-                const byteString = atob(dataURI.split(',')[1]);
-                const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-                const ab = new ArrayBuffer(byteString.length);
-                const ia = new Uint8Array(ab);
-                for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-                return new Blob([ab], {type: mimeString});
-            }
-
-            function applySharpening(ctx, w, h, mix) {
-                if (mix <= 0) return;
-                const imageData = ctx.getImageData(0, 0, w, h);
-                const data = imageData.data;
-                const srcData = new Uint8ClampedArray(data);
-                for (let y = 1; y < h - 1; y++) {
-                    for (let x = 1; x < w - 1; x++) {
-                        const dstOff = (y * w + x) * 4;
-                        const r = (srcData[((y - 1) * w + x) * 4] * -1) + (srcData[(y * w + (x - 1)) * 4] * -1) + (srcData[(y * w + x) * 4] * 5) + (srcData[(y * w + (x + 1)) * 4] * -1) + (srcData[((y + 1) * w + x) * 4] * -1);
-                        const g = (srcData[((y - 1) * w + x) * 4 + 1] * -1) + (srcData[(y * w + (x - 1)) * 4 + 1] * -1) + (srcData[(y * w + x) * 4 + 1] * 5) + (srcData[(y * w + (x + 1)) * 4 + 1] * -1) + (srcData[((y + 1) * w + x) * 4 + 1] * -1);
-                        const b = (srcData[((y - 1) * w + x) * 4 + 2] * -1) + (srcData[(y * w + (x - 1)) * 4 + 2] * -1) + (srcData[(y * w + x) * 4 + 2] * 5) + (srcData[(y * w + (x + 1)) * 4 + 2] * -1) + (srcData[((y + 1) * w + x) * 4 + 2] * -1);
-                        data[dstOff] = r * mix + srcData[dstOff] * (1 - mix);
-                        data[dstOff + 1] = g * mix + srcData[dstOff + 1] * (1 - mix);
-                        data[dstOff + 2] = b * mix + srcData[dstOff + 2] * (1 - mix);
-                    }
-                }
-                ctx.putImageData(imageData, 0, 0);
-            }
-
-            async function processAndDownload(imgObj, quality, filename) {
-                return new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        try {
-                            const originalShortSide = Math.min(img.width, img.height);
-                            let targetShortSide; let sharpenAmount = 0;
-                            switch(quality) {
-                                case '1080p': targetShortSide = 1080; sharpenAmount = 0.15; break;
-                                case '2K': targetShortSide = 1440; sharpenAmount = 0.25; break;
-                                case '4K': targetShortSide = 2160; sharpenAmount = 0.40; break;
-                                case '8K': targetShortSide = 4320; sharpenAmount = 0.55; break;
-                                default: targetShortSide = originalShortSide;
-                            }
-                            const scale = Math.max(1, targetShortSide / originalShortSide);
-                            const canvas = document.createElement('canvas');
-                            canvas.width = img.width * scale; canvas.height = img.height * scale;
-                            const ctx = canvas.getContext('2d');
-                            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-                            ctx.filter = 'contrast(1.02) saturate(1.02)';
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            if (sharpenAmount > 0) applySharpening(ctx, canvas.width, canvas.height, sharpenAmount);
-                            
-                            let newDataUrl = canvas.toDataURL('image/jpeg', 1.0);
-                            if (imgObj.exifData) { try { newDataUrl = piexif.insert(piexif.dump(imgObj.exifData), newDataUrl); } catch (e) {} }
-                            
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(dataURItoBlob(newDataUrl)); link.download = filename;
-                            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-                            setTimeout(() => URL.revokeObjectURL(link.href), 2000);
-                            resolve();
-                        } catch(err) { reject(err); }
-                    };
-                    img.onerror = reject; img.src = imgObj.url;
-                });
-            }
-
-            // Animation Styles
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-                .animate-fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-            `;
-            document.head.appendChild(style);
-        });
+            const link = document.createElement('a');
+            link.href = imageSrc;
+            const timestamp = new Date().getTime();
+            const prefix = currentMode === 'generate' ? 'Generated_' : 'Edited_';
+            link.download = `Gemini_${prefix}Image_${timestamp}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
