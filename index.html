@@ -190,16 +190,20 @@
             downloadBtn.classList.add('hidden');
 
             try {
-                // Endpoint untuk model Imagen 3 (Berdasarkan dokumentasi Google AI Studio)
-                // Diperbarui dari -001 ke -002 untuk mengatasi error "not found/not supported"
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+                // Menggunakan model Gemini 3.1 Flash Image (Nano Banana) melalui endpoint generateContent
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
 
                 const requestBody = {
-                    instances: [
-                        { prompt: prompt }
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [
+                                { text: prompt }
+                            ]
+                        }
                     ],
-                    parameters: {
-                        sampleCount: 1
+                    generationConfig: {
+                        responseModalities: ["IMAGE"]
                     }
                 };
 
@@ -217,10 +221,15 @@
                     throw new Error(data.error?.message || "Terjadi kesalahan pada server saat membuat gambar.");
                 }
 
-                if (data.predictions && data.predictions.length > 0) {
-                    // Mendapatkan base64 string
-                    const base64Image = data.predictions[0].bytesBase64Encoded;
-                    const imageUrl = `data:image/png;base64,${base64Image}`;
+                // Struktur respons gemini-3.1-flash-image berbeda dengan imagen-3.0
+                const parts = data.candidates?.[0]?.content?.parts;
+                const imagePart = parts?.find(p => p.inlineData);
+
+                if (imagePart) {
+                    // Mendapatkan base64 string dan tipe MIME dari response inlineData
+                    const base64Image = imagePart.inlineData.data;
+                    const mimeType = imagePart.inlineData.mimeType || 'image/png';
+                    const imageUrl = `data:${mimeType};base64,${base64Image}`;
 
                     // Tampilkan gambar
                     generatedImage.src = imageUrl;
