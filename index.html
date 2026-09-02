@@ -47,24 +47,6 @@
         <!-- Panel Utama -->
         <div class="glass-panel w-full rounded-2xl shadow-2xl p-6 md:p-8 space-y-6">
             
-            <!-- Input API Key -->
-            <div>
-                <label for="apiKey" class="block text-sm font-medium text-gray-300 mb-2">
-                    <i class="fa-solid fa-key mr-2 text-indigo-400"></i>Google AI Studio API Key
-                </label>
-                <div class="flex gap-2">
-                    <input type="password" id="apiKey" 
-                        class="flex-1 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3 text-sm transition-colors" 
-                        placeholder="Masukkan API Key Anda di sini...">
-                    <button id="saveKeyBtn" onclick="saveApiKey()" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors" title="Simpan API Key">
-                        <i class="fa-solid fa-save"></i>
-                    </button>
-                </div>
-                <p class="mt-2 text-xs text-gray-500">
-                    Dapatkan API key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 hover:underline">Google AI Studio</a>. Key disimpan aman di browser Anda.
-                </p>
-            </div>
-
             <!-- Input Prompt -->
             <div>
                 <label for="prompt" class="block text-sm font-medium text-gray-300 mb-2">
@@ -73,6 +55,9 @@
                 <textarea id="prompt" rows="4" 
                     class="bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 block w-full p-3 text-sm transition-colors resize-none" 
                     placeholder="Contoh: Seekor kucing astronot sedang minum kopi di planet Mars, gaya fotorealistik, pencahayaan sinematik..."></textarea>
+                <p class="mt-2 text-xs text-gray-500 text-right">
+                    Diberdayakan oleh <a href="https://pollinations.ai" target="_blank" class="text-indigo-400 hover:underline">Pollinations.ai</a> (Gratis, tanpa API Key)
+                </p>
             </div>
 
             <!-- Tombol Generate -->
@@ -111,35 +96,13 @@
 
         <!-- Footer -->
         <footer class="mt-12 text-center text-gray-600 text-sm">
-            <p>Dibuat untuk Vercel • Diberdayakan oleh Google Imagen</p>
+            <p>Dibuat untuk Vercel • Gratis tanpa batas</p>
         </footer>
 
     </main>
 
     <!-- Script Logika Aplikasi -->
     <script>
-        // Inisialisasi saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedKey = localStorage.getItem('googleAiApiKey');
-            if (savedKey) {
-                document.getElementById('apiKey').value = savedKey;
-            }
-        });
-
-        // Fungsi menyimpan API Key ke Local Storage
-        function saveApiKey() {
-            const key = document.getElementById('apiKey').value.trim();
-            if (key) {
-                localStorage.setItem('googleAiApiKey', key);
-                
-                // Animasi sukses pada tombol simpan
-                const btn = document.getElementById('saveKeyBtn');
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
-                setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
-            }
-        }
-
         // Menyembunyikan pesan error
         function hideError() {
             const errorDiv = document.getElementById('errorMessage');
@@ -156,7 +119,6 @@
 
         // Fungsi utama membuat gambar
         async function generateImage() {
-            const apiKey = document.getElementById('apiKey').value.trim();
             const prompt = document.getElementById('prompt').value.trim();
             const generateBtn = document.getElementById('generateBtn');
             const resultArea = document.getElementById('resultArea');
@@ -166,11 +128,6 @@
 
             // Validasi Input
             hideError();
-            if (!apiKey) {
-                showError("Mohon masukkan Google AI Studio API Key terlebih dahulu.");
-                document.getElementById('apiKey').focus();
-                return;
-            }
             if (!prompt) {
                 showError("Mohon masukkan deskripsi gambar (prompt).");
                 document.getElementById('prompt').focus();
@@ -190,66 +147,46 @@
             downloadBtn.classList.add('hidden');
 
             try {
-                // Menggunakan model Gemini 3.1 Flash Image (Nano Banana) melalui endpoint generateContent
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+                // Pollinations API mengembalikan gambar secara langsung (bukan JSON)
+                // Kita gunakan URL dengan prompt yang di-encode
+                // Tambahkan random seed agar tidak memunculkan gambar yang sama dari cache jika promptnya persis sama
+                const seed = Math.floor(Math.random() * 1000000);
+                const encodedPrompt = encodeURIComponent(prompt);
+                
+                // Dimensi gambar (bisa disesuaikan, misal 1024x1024)
+                const width = 1024;
+                const height = 1024;
+                const model = 'flux'; // Menggunakan model terbaru Flux yang sangat bagus
 
-                const requestBody = {
-                    contents: [
-                        {
-                            role: "user",
-                            parts: [
-                                { text: prompt }
-                            ]
-                        }
-                    ],
-                    generationConfig: {
-                        responseModalities: ["IMAGE"]
-                    }
-                };
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=${model}&nologo=true`;
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                const data = await response.json();
+                // Untuk mengecek apakah request berhasil, kita gunakan fetch
+                const response = await fetch(imageUrl);
 
                 if (!response.ok) {
-                    throw new Error(data.error?.message || "Terjadi kesalahan pada server saat membuat gambar.");
+                    throw new Error("Terjadi kesalahan pada server saat membuat gambar. Coba lagi nanti.");
                 }
 
-                // Struktur respons gemini-3.1-flash-image berbeda dengan imagen-3.0
-                const parts = data.candidates?.[0]?.content?.parts;
-                const imagePart = parts?.find(p => p.inlineData);
+                // Karena response-nya adalah file gambar utuh, kita ubah menjadi Blob
+                const imageBlob = await response.blob();
+                const objectURL = URL.createObjectURL(imageBlob);
 
-                if (imagePart) {
-                    // Mendapatkan base64 string dan tipe MIME dari response inlineData
-                    const base64Image = imagePart.inlineData.data;
-                    const mimeType = imagePart.inlineData.mimeType || 'image/png';
-                    const imageUrl = `data:${mimeType};base64,${base64Image}`;
-
-                    // Tampilkan gambar
-                    generatedImage.src = imageUrl;
+                // Tampilkan gambar
+                generatedImage.src = objectURL;
+                
+                // Tunggu gambar terload sebelum menampilkan
+                generatedImage.onload = () => {
+                    loadingState.classList.add('hidden');
+                    loadingState.classList.remove('flex');
+                    generatedImage.classList.remove('hidden');
                     
-                    // Tunggu gambar terload sebelum menampilkan
-                    generatedImage.onload = () => {
-                        loadingState.classList.add('hidden');
-                        loadingState.classList.remove('flex');
-                        generatedImage.classList.remove('hidden');
-                        
-                        // Efek transisi halus
-                        setTimeout(() => {
-                            generatedImage.classList.remove('opacity-0');
-                        }, 50);
+                    // Efek transisi halus
+                    setTimeout(() => {
+                        generatedImage.classList.remove('opacity-0');
+                    }, 50);
 
-                        downloadBtn.classList.remove('hidden');
-                    };
-                } else {
-                    throw new Error("API tidak mengembalikan data gambar.");
-                }
+                    downloadBtn.classList.remove('hidden');
+                };
 
             } catch (error) {
                 console.error("Error:", error);
